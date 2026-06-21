@@ -1406,10 +1406,11 @@ function openCityManager(){
       <button class="del-city" onclick="deleteCityRow(${i})">✕</button>`;
     rows.appendChild(row);
   });
-  if(cities.length<8){
+  // always show 3 empty slots at the bottom — no city limit
+  for (let e=0; e<3; e++) {
     const row=document.createElement('div'); row.className='city-mgr-row';
-    const ni=cities.length;
-    row.innerHTML=`<div class="city-swatch" style="background:${SWATCH_COLORS[ni%SWATCH_COLORS.length]}"></div>
+    const ni=(cities.length+e)%SWATCH_COLORS.length;
+    row.innerHTML=`<div class="city-swatch" style="background:${SWATCH_COLORS[ni]}"></div>
       <input type="text" placeholder="Nueva ciudad...">`;
     rows.appendChild(row);
   }
@@ -1797,13 +1798,14 @@ function openCityPanel(cityName) {
   document.getElementById('cpSub').textContent   = data.sub;
   document.getElementById('cpHeader').style.borderBottom = '3px solid '+colors[0];
 
-  // build tabs
+  // build tabs — always show all sections so empty cities like Roma can be edited
   const tabs = document.getElementById('cpTabs');
   tabs.innerHTML = '';
-  const sections = [];
-  if (data.ver.length)    sections.push({key:'ver',   label:'👁 Lugares',      items:data.ver});
-  if (data.comer.length)  sections.push({key:'comer', label:'🍽 Comer',        items:data.comer});
-  if (data.playas.length) sections.push({key:'playas',label:'🏖 Playas',       items:data.playas});
+  const sections = [
+    {key:'ver',    label:'👁 Lugares',   items:data.ver   || []},
+    {key:'comer',  label:'🍽 Comer',     items:data.comer || []},
+    {key:'playas', label:'🏖 Playas',    items:data.playas|| []},
+  ];
   const customs = wishlist.filter(w=>w.city===cityName&&w.custom);
   if (customs.length) sections.push({key:'custom', label:'📌 Mis notas', items:customs});
 
