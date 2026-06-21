@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Travel Planner">
+<meta name="theme-color" content="#1a2f52">
+<link rel="manifest" href="manifest.json">
 <title>Travel Planner</title>
 <style>
 :root {
@@ -360,6 +366,29 @@ a.hotel-tag:hover { text-decoration:underline; }
 .tp-entry-detail { font-size:.76rem; color:var(--muted); margin-top:2px; }
 .tp-entry-del { background:none; border:none; color:var(--danger); cursor:pointer; font-size:1rem; padding:4px 8px; border-radius:6px; opacity:.5; }
 .tp-entry-del:hover { opacity:1; background:#fee2e2; }
+
+/* ── DAY VIEW ── */
+.dv-section { background:var(--card); border:1.5px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:14px; box-shadow:var(--shadow); }
+.dv-section-title { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+.dv-city-banner { border-radius:10px; padding:14px 18px; margin-bottom:14px; }
+.dv-city-name { font-size:1.4rem; font-weight:900; }
+.dv-city-sub { font-size:.78rem; opacity:.75; margin-top:2px; }
+.dv-item { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+.dv-item:last-child { border-bottom:none; }
+.dv-item-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+.dv-item-info { flex:1; }
+.dv-item-main { font-size:.9rem; font-weight:700; color:var(--text); }
+.dv-item-sub { font-size:.76rem; color:var(--muted); margin-top:2px; }
+.dv-maps { display:inline-flex; align-items:center; gap:3px; margin-top:4px; padding:2px 8px; border-radius:5px; background:#e8f0fb; border:1px solid #b3cef5; font-size:.67rem; font-weight:700; color:var(--blue); text-decoration:none; }
+.dv-budget { display:flex; gap:20px; }
+.dv-budget-item { text-align:center; }
+.dv-budget-item .val { font-size:1.1rem; font-weight:800; color:var(--blue); }
+.dv-budget-item .lbl { font-size:.68rem; color:var(--muted); }
+
+/* currency widget mobile */
+@media (max-width:480px) {
+  #currencyWidget { display:none !important; }
+}
 
 /* ── DOCS TAB ── */
 #tabDocs .docs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
@@ -740,6 +769,23 @@ html { touch-action: pan-x pan-y; }
     <button class="hbtn hbtn-ghost" onclick="openCityManager()"><span class="hbtn-full">🏙 Ciudades</span><span class="hbtn-short">🏙</span></button>
     <button class="hbtn hbtn-ghost" onclick="switchTab('tabDocs')"><span class="hbtn-full">📄 Docs</span><span class="hbtn-short">📄</span></button>
     <button class="hbtn hbtn-ghost no-mobile" onclick="window.print()">🖨 Imprimir</button>
+    <div id="currencyWidget" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:20px;padding:5px 12px;font-size:.78rem;color:#fff">
+      <span>💶</span>
+      <input id="currAmt" type="number" value="1" min="0" style="width:52px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.4);color:#fff;font-size:.78rem;text-align:center;outline:none;padding:1px 0">
+      <select id="currFrom" style="background:transparent;border:none;color:#fff;font-size:.75rem;outline:none;cursor:pointer">
+        <option value="EUR" style="color:#000">EUR</option>
+        <option value="ARS" style="color:#000">ARS</option>
+        <option value="USD" style="color:#000">USD</option>
+      </select>
+      <span style="opacity:.6">=</span>
+      <span id="currResult" style="font-weight:700;color:#34d399;min-width:60px">...</span>
+      <select id="currTo" style="background:transparent;border:none;color:#fff;font-size:.75rem;outline:none;cursor:pointer">
+        <option value="ARS" style="color:#000">ARS</option>
+        <option value="EUR" style="color:#000">EUR</option>
+        <option value="USD" style="color:#000">USD</option>
+      </select>
+      <span id="currRate" style="font-size:.65rem;opacity:.5;cursor:pointer" onclick="updateRate()" title="Tocar para actualizar tasa">↻</span>
+    </div>
   </div>
 </header>
 
@@ -748,6 +794,8 @@ html { touch-action: pan-x pan-y; }
   <button class="tab-btn" id="btn-tabWishlist" onclick="switchTab('tabWishlist')"><span class="tab-full">⭐ Wishlist</span><span class="tab-short">⭐</span></button>
   <button class="tab-btn" id="btn-tabDocs" onclick="switchTab('tabDocs')"><span class="tab-full">📄 Documentos</span><span class="tab-short">📄</span></button>
   <button class="tab-btn" id="btn-tabTransport" onclick="switchTab('tabTransport')"><span class="tab-full">🚀 Transportes</span><span class="tab-short">🚀</span></button>
+  <button class="tab-btn" id="btn-tabDayview" onclick="switchTab('tabDayview')"><span class="tab-full">📆 Día a día</span><span class="tab-short">📆</span></button>
+  <button class="tab-btn" id="btn-tabCar" onclick="switchTab('tabCar')"><span class="tab-full">🚗 Auto</span><span class="tab-short">🚗</span></button>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
@@ -882,6 +930,88 @@ html { touch-action: pan-x pan-y; }
       <div id="tpSummary"></div>
     </div>
 
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TAB: DAY VIEW
+═══════════════════════════════════════ -->
+<div id="tabDayview" class="wrap" style="display:none">
+  <div style="max-width:680px;margin:0 auto">
+    <div id="dvNav" style="display:flex;align-items:center;gap:12px;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 18px;box-shadow:var(--shadow)">
+      <button id="dvPrev" onclick="dvMove(-1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center">◀</button>
+      <div style="flex:1;text-align:center">
+        <div id="dvDateLabel" style="font-size:1.1rem;font-weight:800;color:var(--text)">—</div>
+        <div id="dvDayCount" style="font-size:.75rem;color:var(--muted);margin-top:1px"></div>
+      </div>
+      <button id="dvNext" onclick="dvMove(+1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center">▶</button>
+      <button onclick="openDayModal(dvCurrentDate)" style="padding:7px 16px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;margin-left:8px">✏️ Editar</button>
+    </div>
+    <div id="dvContent"></div>
+    <div id="dvEmpty" style="display:none;text-align:center;padding:40px;color:var(--muted)">
+      <div style="font-size:2.5rem;margin-bottom:12px">📭</div>
+      <div style="font-size:.9rem">Este día no tiene información.<br>Tocá <strong>Editar</strong> para agregar.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TAB: CAR
+═══════════════════════════════════════ -->
+<div id="tabCar" class="wrap" style="display:none">
+  <div style="max-width:680px;margin:0 auto">
+    <h2 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px">🚗 Información del auto</h2>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:20px">Datos del alquiler y emergencias.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+
+      <div class="doc-card">
+        <h3>🔑 Datos del vehículo</h3>
+        <div class="doc-field"><label>Empresa de alquiler</label><input id="car-company" type="text" placeholder="ej. Locauto / Hertz"></div>
+        <div class="doc-field"><label>Número de reserva</label><input id="car-booking" type="text" placeholder="ej. RES-123456"></div>
+        <div class="doc-field"><label>Patente / Matrícula</label><input id="car-plate" type="text" placeholder="ej. EF 123 GH"></div>
+        <div class="doc-field"><label>Modelo del auto</label><input id="car-model" type="text" placeholder="ej. Fiat 500 / VW Golf"></div>
+        <button class="doc-save-btn" onclick="saveCarData()">Guardar</button>
+      </div>
+
+      <div class="doc-card">
+        <h3>📅 Fechas del alquiler</h3>
+        <div class="doc-field"><label>Recogida — fecha y hora</label><input id="car-pickup-date" type="datetime-local"></div>
+        <div class="doc-field"><label>Lugar de recogida</label><input id="car-pickup-place" type="text" placeholder="ej. Aeropuerto de Bari"></div>
+        <div class="doc-field"><label>Devolución — fecha y hora</label><input id="car-return-date" type="datetime-local"></div>
+        <div class="doc-field"><label>Lugar de devolución</label><input id="car-return-place" type="text" placeholder="ej. Aeropuerto de Nápoles"></div>
+        <button class="doc-save-btn" onclick="saveCarData()">Guardar</button>
+      </div>
+
+      <div class="doc-card">
+        <h3>🏥 Seguro y emergencias</h3>
+        <div class="doc-field"><label>Compañía de seguro</label><input id="car-ins-company" type="text"></div>
+        <div class="doc-field"><label>N° de póliza</label><input id="car-ins-policy" type="text"></div>
+        <div class="doc-field"><label>Teléfono emergencias (24hs)</label><input id="car-ins-phone" type="tel" placeholder="+39 ..."></div>
+        <div class="doc-field"><label>Teléfono empresa alquiler</label><input id="car-company-phone" type="tel"></div>
+        <button class="doc-save-btn" onclick="saveCarData()">Guardar</button>
+      </div>
+
+      <div class="doc-card">
+        <h3>📝 Notas del auto</h3>
+        <div class="doc-field"><label>Franquicia / deducible</label><input id="car-franchise" type="text" placeholder="ej. €800 — cubierta con tarjeta"></div>
+        <div class="doc-field"><label>Combustible</label><input id="car-fuel" type="text" placeholder="ej. Diésel / Sin plomo 95"></div>
+        <div class="doc-field"><label>Notas adicionales</label><textarea id="car-notes" style="min-height:80px;width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;resize:vertical;outline:none" placeholder="ZTL, peajes, parkings especiales..."></textarea></div>
+        <button class="doc-save-btn" onclick="saveCarData()">Guardar</button>
+      </div>
+
+      <div class="doc-card">
+        <h3>🅿️ Dónde lo estacioné</h3>
+        <div class="doc-field"><label>Ciudad / Lugar</label><input id="car-park-city" type="text" placeholder="ej. Polignano a Mare"></div>
+        <div class="doc-field"><label>Dirección o referencia</label><input id="car-park-addr" type="text" placeholder="ej. Via Roma 12, frente al supermercado"></div>
+        <div class="doc-field"><label>Link Google Maps</label><input id="car-park-map" type="url" placeholder="https://maps.google.com/..."></div>
+        <div class="doc-field"><label>Notas (pago, horario, vence)</label><input id="car-park-notes" type="text" placeholder="ej. Línea azul, pago hasta 20hs, ticket en el auto"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="doc-save-btn" onclick="saveCarData()">Guardar</button>
+          <button class="doc-save-btn" style="background:var(--teal)" onclick="openCarParkMap()">📍 Abrir Maps</button>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -1168,13 +1298,15 @@ function toast(msg){
 
 // ── TABS ─────────────────────────────────────────────────
 function switchTab(id) {
-  ['tabCalendar','tabWishlist','tabDocs','tabTransport'].forEach(t => {
+  ['tabCalendar','tabWishlist','tabDocs','tabTransport','tabDayview','tabCar'].forEach(t => {
     document.getElementById(t).style.display = t===id ? '' : 'none';
     document.getElementById('btn-'+t).classList.toggle('active', t===id);
   });
   if (id==='tabWishlist')  renderWishlist();
   if (id==='tabDocs')      loadDocsUI();
   if (id==='tabTransport') renderTpSummary();
+  if (id==='tabDayview')   initDayView();
+  if (id==='tabCar')       loadCarData();
 }
 
 // ── CALENDAR BUILD ───────────────────────────────────────
@@ -2223,10 +2355,234 @@ function removeTpEntry(ds, mode, dep) {
   save(); rebuildCalendars(); renderTpSummary();
 }
 
+// ── DAY VIEW ─────────────────────────────────────────────────────────────────
+let dvDates = [];
+let dvIndex = 0;
+let dvCurrentDate = null;
+
+function initDayView() {
+  // Build sorted list of all days in Aug+Sep 2026 that have ANY data
+  const allDates = [];
+  for (let m=8; m<=9; m++) {
+    const days_in = new Date(2026,m,0).getDate();
+    for (let d=1; d<=days_in; d++) {
+      const ds = '2026-'+pad(m)+'-'+pad(d);
+      allDates.push(ds);
+    }
+  }
+  dvDates = allDates; // show ALL days, not just ones with data
+
+  // Default to today if in range, else first day of Aug
+  const today = new Date();
+  const todayStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+  const todayIdx = dvDates.indexOf(todayStr);
+  dvIndex = todayIdx >= 0 ? todayIdx : 0;
+
+  renderDayView();
+}
+
+function dvMove(dir) {
+  dvIndex = Math.max(0, Math.min(dvDates.length-1, dvIndex+dir));
+  renderDayView();
+}
+
+function renderDayView() {
+  if (!dvDates.length) return;
+  dvCurrentDate = dvDates[dvIndex];
+  const [y,m,d] = dvCurrentDate.split('-');
+  const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  // nav label
+  const weekdays = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const dt = new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+  document.getElementById('dvDateLabel').textContent = weekdays[dt.getDay()]+' '+parseInt(d)+' de '+MONTHS[parseInt(m)-1];
+  document.getElementById('dvDayCount').textContent = 'Día '+(dvIndex+1)+' / '+dvDates.length;
+
+  // prev/next buttons
+  document.getElementById('dvPrev').style.opacity = dvIndex===0 ? '.3' : '1';
+  document.getElementById('dvNext').style.opacity = dvIndex===dvDates.length-1 ? '.3' : '1';
+
+  const data = days[dvCurrentDate] || {};
+  const city  = cities.find(c=>c.name===data.city);
+  const CITY_THUMB_COLORS_MAP = window.CITY_THUMB_COLORS || {};
+  const colors = (city && CITY_THUMB_COLORS_MAP[city.name]) || ['#334155','#64748b'];
+
+  const cont = document.getElementById('dvContent');
+  const empty = document.getElementById('dvEmpty');
+  cont.innerHTML = '';
+
+  const hasData = data.city || (data.transports||[]).length || data.hotelName ||
+                  (data.activities||[]).length || data.budgetEst || data.budgetReal || data.notes;
+
+  if (!hasData) {
+    cont.style.display='none'; empty.style.display='block'; return;
+  }
+  cont.style.display=''; empty.style.display='none';
+
+  // City banner
+  if (data.city) {
+    const banner = document.createElement('div');
+    banner.className = 'dv-city-banner';
+    banner.style.cssText = 'background:linear-gradient(135deg,'+colors[0]+','+colors[1]+');color:#fff';
+    const puglia = window.PUGLIA_DATA && window.PUGLIA_DATA[data.city];
+    banner.innerHTML = '<div class="dv-city-name">'+(puglia?puglia.emoji+' ':'')+data.city+'</div>'+
+      (puglia?'<div class="dv-city-sub">'+puglia.sub+'</div>':'');
+    cont.appendChild(banner);
+  }
+
+  // Transport
+  if ((data.transports||[]).length) {
+    const sec = document.createElement('div'); sec.className='dv-section';
+    sec.innerHTML='<div class="dv-section-title">🚀 Transportes</div>';
+    data.transports.forEach(t=>{
+      const icon = {avion:'✈️',auto:'🚗',tren:'🚆',barco:'🚢',bus:'🚌',taxi:'🚕',metro:'🚇',bici:'🚲',pie:'🚶'}[t.mode]||'🚀';
+      const row = document.createElement('div'); row.className='dv-item';
+      let sub = '';
+      if (t.dep) sub += 'Salida: '+t.dep;
+      if (t.arr) sub += (sub?' · ':'')+'Llegada: '+t.arr;
+      if (t.ref) sub += (sub?' · ':'')+'Ref: '+t.ref;
+      row.innerHTML='<span class="dv-item-icon">'+icon+'</span>'+
+        '<div class="dv-item-info"><div class="dv-item-main">'+
+        ({avion:'Avión',auto:'Auto',tren:'Tren',barco:'Barco',bus:'Bus',taxi:'Taxi',metro:'Metro',bici:'Bici',pie:'A pie'}[t.mode]||t.mode)+
+        '</div>'+(sub?'<div class="dv-item-sub">'+sub+'</div>':'')+'</div>';
+      sec.appendChild(row);
+    });
+    cont.appendChild(sec);
+  }
+
+  // Hotel
+  const hotel = (()=>{
+    for (const [ds,dd] of Object.entries(days)) {
+      if(dd.hotelName&&dd.hotelFrom&&dd.hotelTo&&dvCurrentDate>=dd.hotelFrom&&dvCurrentDate<=dd.hotelTo)
+        return {name:dd.hotelName,map:dd.hotelMap};
+    }
+    return data.hotelName ? {name:data.hotelName,map:data.hotelMap} : null;
+  })();
+  if (hotel) {
+    const sec = document.createElement('div'); sec.className='dv-section';
+    sec.innerHTML='<div class="dv-section-title">🏨 Alojamiento</div>';
+    const row = document.createElement('div'); row.className='dv-item';
+    row.innerHTML='<span class="dv-item-icon">🏨</span>'+
+      '<div class="dv-item-info"><div class="dv-item-main">'+hotel.name+'</div>'+
+      (hotel.map?'<a class="dv-maps" href="'+hotel.map+'" target="_blank" rel="noopener">📍 Google Maps</a>':'')+
+      '</div>';
+    sec.appendChild(row);
+    cont.appendChild(sec);
+  }
+
+  // Activities
+  if ((data.activities||[]).length) {
+    const sec = document.createElement('div'); sec.className='dv-section';
+    sec.innerHTML='<div class="dv-section-title">🎯 Actividades</div>';
+    data.activities.forEach(a=>{
+      const row = document.createElement('div'); row.className='dv-item';
+      row.innerHTML='<span class="dv-item-icon">•</span><div class="dv-item-info"><div class="dv-item-main">'+a+'</div></div>';
+      sec.appendChild(row);
+    });
+    cont.appendChild(sec);
+  }
+
+  // Budget
+  if (data.budgetEst || data.budgetReal) {
+    const sec = document.createElement('div'); sec.className='dv-section';
+    sec.innerHTML='<div class="dv-section-title">💶 Presupuesto</div>';
+    const bdiv = document.createElement('div'); bdiv.className='dv-budget';
+    if(data.budgetEst)  bdiv.innerHTML+='<div class="dv-budget-item"><div class="val">€'+data.budgetEst+'</div><div class="lbl">Estimado</div></div>';
+    if(data.budgetReal) bdiv.innerHTML+='<div class="dv-budget-item"><div class="val" style="color:var(--teal)">€'+data.budgetReal+'</div><div class="lbl">Gastado</div></div>';
+    sec.appendChild(bdiv);
+    cont.appendChild(sec);
+  }
+
+  // Notes
+  if (data.notes) {
+    const sec = document.createElement('div'); sec.className='dv-section';
+    sec.innerHTML='<div class="dv-section-title">📝 Notas</div>'+
+      '<div style="font-size:.88rem;color:var(--text);line-height:1.5">'+data.notes+'</div>';
+    cont.appendChild(sec);
+  }
+}
+
+// ── CAR DATA ──────────────────────────────────────────────────────────────────
+const CAR_FIELDS=['car-company','car-booking','car-plate','car-model',
+  'car-pickup-date','car-pickup-place','car-return-date','car-return-place',
+  'car-ins-company','car-ins-policy','car-ins-phone','car-company-phone',
+  'car-franchise','car-fuel','car-notes',
+  'car-park-city','car-park-addr','car-park-map','car-park-notes'];
+
+function loadCarData() {
+  const car = docs.car || {};
+  CAR_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=car[id]||''; });
+}
+function saveCarData() {
+  const car={};
+  CAR_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) car[id]=el.value; });
+  docs.car=car; save(); toast('✅ Datos del auto guardados');
+}
+function openCarParkMap() {
+  const url = document.getElementById('car-park-map').value.trim();
+  if (url) { window.open(url,'_blank'); return; }
+  const addr = document.getElementById('car-park-addr').value.trim();
+  const city = document.getElementById('car-park-city').value.trim();
+  const q = encodeURIComponent((addr+' '+city).trim());
+  if (q) window.open('https://maps.google.com/?q='+q,'_blank');
+  else toast('Ingresá una dirección primero');
+}
+
+// ── CURRENCY CONVERTER ────────────────────────────────────────────────────────
+const RATES_KEY = 'travel_fx_rates';
+let fxRates = JSON.parse(localStorage.getItem(RATES_KEY)||'{}') || {};
+// Fallback rates if no internet
+if (!fxRates.EUR) fxRates = {EUR:1, ARS:1050, USD:1.08};
+
+function calcCurrency() {
+  const amt    = parseFloat(document.getElementById('currAmt').value)||0;
+  const from   = document.getElementById('currFrom').value;
+  const to     = document.getElementById('currTo').value;
+  const result = document.getElementById('currResult');
+  const rateEl = document.getElementById('currRate');
+  if (!fxRates[from] || !fxRates[to]) { result.textContent='?'; return; }
+  const val = amt / fxRates[from] * fxRates[to];
+  result.textContent = val.toLocaleString('es-AR',{maximumFractionDigits:0})+' '+to;
+  rateEl.title = '1 '+from+' = '+(fxRates[to]/fxRates[from]).toFixed(2)+' '+to+' · Tocar para actualizar';
+}
+
+async function updateRate() {
+  const rateEl = document.getElementById('currRate');
+  rateEl.textContent='⌛';
+  try {
+    const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=ARS,USD');
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+    fxRates = {EUR:1, ARS:d.rates.ARS, USD:d.rates.USD};
+    localStorage.setItem(RATES_KEY, JSON.stringify(fxRates));
+    rateEl.textContent='↻';
+    calcCurrency();
+    toast('✅ Tasa actualizada');
+  } catch(e) {
+    rateEl.textContent='↻';
+    toast('Sin conexión — usando tasa guardada');
+  }
+}
+
+function initCurrency() {
+  ['currAmt','currFrom','currTo'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input', calcCurrency);
+    if(el) el.addEventListener('change', calcCurrency);
+  });
+  calcCurrency();
+  // try to get fresh rates silently on load
+  updateRate().catch(()=>{});
+}
+
 // ── INIT ─────────────────────────────────────────────────
 load();
 rebuildLegend();
 rebuildCalendars();
+initCurrency();
+// expose CITY_THUMB_COLORS and PUGLIA_DATA to window for dayview
+window.CITY_THUMB_COLORS = CITY_THUMB_COLORS;
+window.PUGLIA_DATA = PUGLIA_DATA;
 </script>
 </body>
 </html>

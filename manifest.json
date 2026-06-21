@@ -1,0 +1,17 @@
+{
+  "name": "Travel Planner",
+  "short_name": "Travel",
+  "description": "Planificador de viaje compartido",
+  "start_url": "./Travel_Calendar.html",
+  "display": "standalone",
+  "background_color": "#1a2f52",
+  "theme_color": "#1a2f52",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
