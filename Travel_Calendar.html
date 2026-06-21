@@ -2560,19 +2560,38 @@ function calcCurrency() {
 async function updateRate() {
   const rateEl = document.getElementById('currRate');
   rateEl.textContent='⌛';
-  try {
-    const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=ARS,USD');
-    if (!res.ok) throw new Error();
-    const d = await res.json();
-    fxRates = {EUR:1, ARS:d.rates.ARS, USD:d.rates.USD};
-    localStorage.setItem(RATES_KEY, JSON.stringify(fxRates));
-    rateEl.textContent='↻';
-    calcCurrency();
-    toast('✅ Tasa actualizada');
-  } catch(e) {
-    rateEl.textContent='↻';
-    const w=document.getElementById('currencyWidget'); if(w&&w.offsetParent!==null) toast('Sin conexión — usando tasa guardada');
+  const sources = [
+    async () => {
+      const r = await fetch('https://open.er-api.com/v6/latest/EUR');
+      const d = await r.json();
+      if (d.result !== 'success') throw new Error();
+      return {EUR:1, ARS:d.rates.ARS, USD:d.rates.USD};
+    },
+    async () => {
+      const r = await fetch('https://api.exchangerate-api.com/v4/latest/EUR');
+      const d = await r.json();
+      return {EUR:1, ARS:d.rates.ARS, USD:d.rates.USD};
+    },
+    async () => {
+      const r = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json');
+      const d = await r.json();
+      return {EUR:1, ARS:d.eur.ars, USD:d.eur.usd};
+    },
+  ];
+  for (const source of sources) {
+    try {
+      const rates = await source();
+      if (!rates.ARS || !rates.USD) continue;
+      fxRates = rates;
+      localStorage.setItem(RATES_KEY, JSON.stringify(fxRates));
+      rateEl.textContent='↻';
+      calcCurrency();
+      toast('✅ Tasa actualizada (oficial BCE)');
+      return;
+    } catch(e) { continue; }
   }
+  rateEl.textContent='↻';
+  const w=document.getElementById('currencyWidget'); if(w&&w.offsetParent!==null) toast('Sin conexión — usando tasa guardada');
 }
 
 function initCurrency() {
