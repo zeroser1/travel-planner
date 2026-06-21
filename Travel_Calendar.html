@@ -2580,6 +2580,10 @@ load();
 rebuildLegend();
 rebuildCalendars();
 initCurrency();
+// Register service worker for PWA install
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
 // expose CITY_THUMB_COLORS and PUGLIA_DATA to window for dayview
 window.CITY_THUMB_COLORS = CITY_THUMB_COLORS;
 window.PUGLIA_DATA = PUGLIA_DATA;

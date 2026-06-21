@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#1a2f52"/>
+  <rect x="40" y="40" width="432" height="432" rx="60" fill="#2d4a7a"/>
+  <!-- Plane body -->
+  <path d="M256 120 L320 280 L256 250 L192 280 Z" fill="#4F7FD4"/>
+  <path d="M190 220 L100 260 L120 280 L210 250 Z" fill="#91C8F6"/>
+  <path d="M322 220 L412 260 L392 280 L302 250 Z" fill="#91C8F6"/>
+  <path d="M230 270 L180 320 L200 325 L256 290 L312 325 L332 320 L282 270 Z" fill="#91C8F6"/>
+  <!-- Calendar grid hint -->
+  <rect x="140" y="340" width="50" height="50" rx="8" fill="#34d399" opacity="0.8"/>
+  <rect x="200" y="340" width="50" height="50" rx="8" fill="#4F7FD4" opacity="0.8"/>
+  <rect x="260" y="340" width="50" height="50" rx="8" fill="#fbbf24" opacity="0.8"/>
+  <rect x="320" y="340" width="50" height="50" rx="8" fill="#f87171" opacity="0.8"/>
+</svg>
