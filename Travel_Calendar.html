@@ -1308,7 +1308,7 @@ function switchTab(id) {
   if (id==='tabWishlist')  renderWishlist();
   if (id==='tabDocs')      loadDocsUI();
   if (id==='tabTransport') renderTpSummary();
-  if (id==='tabDayview')   initDayView();
+  if (id==='tabDayview')   { if(!dvDates.length) initDayView(); else renderDayView(); }
   if (id==='tabCar')       loadCarData();
 }
 
