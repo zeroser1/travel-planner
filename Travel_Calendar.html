@@ -794,6 +794,26 @@ a.hotel-tag:hover { text-decoration:underline; }
 
 
 
+/* ── WEATHER ── */
+.weather-badge {
+  display:flex; align-items:center; gap:3px;
+  font-size:.62rem; font-weight:700;
+  color:var(--ct,var(--text));
+  margin-top:auto;
+}
+.weather-badge .w-icon { font-size:.8rem; }
+.dv-weather {
+  display:flex; align-items:center; gap:10px;
+  background:linear-gradient(135deg,#e0f2fe,#bae6fd);
+  border-radius:10px; padding:12px 16px; margin-bottom:14px;
+}
+.dv-weather .w-main { font-size:2rem; }
+.dv-weather .w-info { flex:1; }
+.dv-weather .w-temp { font-size:1.3rem; font-weight:800; color:#0369a1; }
+.dv-weather .w-desc { font-size:.8rem; color:#0c4a6e; margin-top:2px; }
+.dv-weather .w-hist { font-size:.72rem; color:#0369a1; opacity:.75; font-style:italic; margin-top:2px; }
+.dv-weather .w-source { font-size:.65rem; color:#64748b; margin-left:auto; }
+
 /* ── DOCS TAB ── */
 
 #tabDocs .docs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
@@ -2816,13 +2836,20 @@ function buildMonth(year, month, gridId) {
 
 
 
+    // Weather badge (async, non-blocking)
+    if (data.city && CITY_COORDS[data.city]) {
+      const wb = document.createElement('div'); wb.className='weather-badge';
+      wb.innerHTML='<span class="w-icon">⋯</span>';
+      cell.appendChild(wb);
+      getWeather(data.city, ds).then(w => {
+        if (w) wb.innerHTML='<span class="w-icon">'+w.icon+'</span><span>'+w.temp+'°C</span>';
+        else wb.remove();
+      });
+    }
+
     grid.appendChild(cell);
-
   }
-
 }
-
-
 
 function rebuildCalendars(){
 
@@ -4743,19 +4770,36 @@ function renderDayView() {
 
 
   // Notes
-
   if (data.notes) {
-
     const sec = document.createElement('div'); sec.className='dv-section';
-
     sec.innerHTML='<div class="dv-section-title">📝 Notas</div>'+
-
       '<div style="font-size:.88rem;color:var(--text);line-height:1.5">'+data.notes+'</div>';
-
     cont.appendChild(sec);
-
   }
 
+  // Weather — inject async after render
+  if (data.city) {
+    const wSec = document.createElement('div');
+    wSec.className='dv-section';
+    wSec.innerHTML='<div class="dv-section-title">🌤 Clima</div>'+
+      '<div class="dv-weather"><span class="w-main">⏳</span>'+
+      '<div class="w-info"><div class="w-desc">Cargando...</div></div></div>';
+    cont.appendChild(wSec);
+
+    getWeather(data.city, dvCurrentDate).then(w => {
+      if (!w) { wSec.remove(); return; }
+      const label = isWithin14Days(dvCurrentDate) ? '📡 pronóstico real' : '📊 promedio histórico';
+      wSec.innerHTML='<div class="dv-section-title">🌤 Clima <span style="font-size:.65rem;font-weight:400;color:var(--muted);margin-left:4px">'+label+'</span></div>'+
+        '<div class="dv-weather">'+
+          '<span class="w-main">'+w.icon+'</span>'+
+          '<div class="w-info">'+
+            '<div class="w-temp">'+w.temp+'°C</div>'+
+            '<div class="w-desc">'+w.desc+'</div>'+
+            '<div class="w-hist">'+w.hist+'</div>'+
+          '</div>'+
+        '</div>';
+    });
+  }
 }
 
 
@@ -4943,6 +4987,145 @@ function initCurrency() {
 }
 
 
+
+// ── WEATHER ──────────────────────────────────────────────────────────────────
+// City coordinates for Open-Meteo API
+const CITY_COORDS = {
+  'Bari':                              {lat:41.1177, lon:16.8719},
+  'Polignano a Mare':                  {lat:40.9934, lon:17.2199},
+  'Alberobello':                       {lat:40.7853, lon:17.2378},
+  'Cisternino':                        {lat:40.7386, lon:17.4251},
+  'Locorotondo':                       {lat:40.7552, lon:17.3267},
+  'Martina Franca':                    {lat:40.7014, lon:17.3367},
+  'Ostuni':                            {lat:40.7287, lon:17.5758},
+  'Lecce':                             {lat:40.3536, lon:18.1750},
+  'Trani':                             {lat:41.2769, lon:16.4155},
+  'Otranto':                           {lat:40.1468, lon:18.4903},
+  'Porto Cesareo / Punta Prosciutto':  {lat:40.2571, lon:17.8953},
+  'Gallipoli':                         {lat:40.0567, lon:17.9930},
+  'Taranto':                           {lat:40.4644, lon:17.2470},
+  'Matera':                            {lat:40.6664, lon:16.6043},
+  'Santa Maria di Leuca':              {lat:39.7957, lon:18.3516},
+  'Vieste':                            {lat:41.8810, lon:16.1764},
+  'Roma':                              {lat:41.9028, lon:12.4964},
+  'Nápoles':                           {lat:40.8518, lon:14.2681},
+  'Sorrento':                          {lat:40.6263, lon:14.3757},
+  'Pompeya':                           {lat:40.7461, lon:14.4989},
+};
+
+// Historical monthly averages per city (Aug / Sep)
+// Format: [aug_avg_max, aug_rain_days, sep_avg_max, sep_rain_days, icon_aug, icon_sep]
+const CITY_CLIMATE = {
+  'Bari':                              [29, 2, 25, 5, '☀️', '🌤'],
+  'Polignano a Mare':                  [29, 2, 25, 5, '☀️', '🌤'],
+  'Alberobello':                       [28, 3, 23, 6, '🌤', '🌤'],
+  'Cisternino':                        [28, 3, 23, 6, '🌤', '🌤'],
+  'Locorotondo':                       [28, 3, 23, 6, '🌤', '🌤'],
+  'Martina Franca':                    [27, 3, 23, 6, '🌤', '🌤'],
+  'Ostuni':                            [29, 2, 25, 5, '☀️', '🌤'],
+  'Lecce':                             [30, 2, 26, 5, '☀️', '🌤'],
+  'Trani':                             [29, 2, 25, 5, '☀️', '🌤'],
+  'Otranto':                           [28, 2, 25, 5, '☀️', '🌤'],
+  'Porto Cesareo / Punta Prosciutto':  [30, 2, 26, 4, '☀️', '☀️'],
+  'Gallipoli':                         [29, 2, 26, 4, '☀️', '☀️'],
+  'Taranto':                           [30, 2, 26, 4, '☀️', '🌤'],
+  'Matera':                            [28, 3, 23, 6, '🌤', '🌤'],
+  'Santa Maria di Leuca':              [29, 2, 26, 4, '☀️', '☀️'],
+  'Vieste':                            [29, 3, 25, 5, '☀️', '🌤'],
+  'Roma':                              [30, 2, 26, 4, '☀️', '🌤'],
+  'Nápoles':                           [29, 3, 25, 5, '☀️', '🌤'],
+  'Sorrento':                          [28, 3, 25, 5, '☀️', '🌤'],
+  'Pompeya':                           [29, 3, 25, 5, '☀️', '🌤'],
+};
+
+// WMO weather code → emoji + description
+function wmoToDisplay(code) {
+  if (code === 0)              return {icon:'☀️',  desc:'Despejado'};
+  if (code <= 2)               return {icon:'🌤',  desc:'Parcialmente nublado'};
+  if (code === 3)              return {icon:'☁️',  desc:'Nublado'};
+  if (code <= 49)              return {icon:'🌫',  desc:'Niebla'};
+  if (code <= 59)              return {icon:'🌦',  desc:'Llovizna'};
+  if (code <= 69)              return {icon:'🌧',  desc:'Lluvia'};
+  if (code <= 79)              return {icon:'❄️',  desc:'Nieve'};
+  if (code <= 84)              return {icon:'🌦',  desc:'Lluvia y nieve'};
+  if (code <= 99)              return {icon:'⛈',  desc:'Tormenta'};
+  return {icon:'🌡', desc:'Variable'};
+}
+
+const WEATHER_CACHE_KEY = 'travel_weather_v1';
+let weatherCache = JSON.parse(localStorage.getItem(WEATHER_CACHE_KEY)||'{}');
+
+function saveWeatherCache() {
+  localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(weatherCache));
+}
+
+function isWithin14Days(dateStr) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const target = new Date(dateStr+'T00:00:00');
+  const diffDays = (target - today) / (1000*60*60*24);
+  return diffDays >= 0 && diffDays <= 14;
+}
+
+function getHistoricalClimate(cityName, dateStr) {
+  const climate = CITY_CLIMATE[cityName];
+  if (!climate) return null;
+  const month = parseInt(dateStr.split('-')[1]);
+  const isAug = month === 8;
+  const temp = isAug ? climate[0] : climate[2];
+  const rainDays = isAug ? climate[1] : climate[3];
+  const icon = isAug ? climate[4] : climate[5];
+  return { icon, temp, desc: `Promedio ~${temp}°C`, hist: `~${rainDays} días de lluvia en ${isAug?'agosto':'septiembre'}`, source:'histórico' };
+}
+
+async function fetchRealWeather(cityName, dateStr) {
+  const cacheKey = cityName + '_' + dateStr;
+  const cached = weatherCache[cacheKey];
+  // cache for 3 hours
+  if (cached && (Date.now() - cached.ts) < 3*60*60*1000) return cached.data;
+
+  const coords = CITY_COORDS[cityName];
+  if (!coords) return null;
+
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude='+coords.lat+
+      '&longitude='+coords.lon+
+      '&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum'+
+      '&timezone=Europe%2FRome&start_date='+dateStr+'&end_date='+dateStr;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(res.status);
+    const d = await res.json();
+    if (!d.daily || !d.daily.temperature_2m_max[0]) return null;
+
+    const code = d.daily.weathercode[0];
+    const wmo = wmoToDisplay(code);
+    const maxT = Math.round(d.daily.temperature_2m_max[0]);
+    const minT = Math.round(d.daily.temperature_2m_min[0]);
+    const rain = d.daily.precipitation_sum[0];
+
+    const data = {
+      icon: wmo.icon,
+      temp: maxT,
+      desc: wmo.desc + ' · ' + minT + '–' + maxT + '°C',
+      hist: rain > 0 ? '🌧 '+rain+'mm' : 'Sin lluvia prevista',
+      source: 'pronóstico real'
+    };
+    weatherCache[cacheKey] = { data, ts: Date.now() };
+    saveWeatherCache();
+    return data;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function getWeather(cityName, dateStr) {
+  if (!cityName || !CITY_COORDS[cityName]) return null;
+  if (isWithin14Days(dateStr)) {
+    const real = await fetchRealWeather(cityName, dateStr);
+    return real || getHistoricalClimate(cityName, dateStr);
+  }
+  return getHistoricalClimate(cityName, dateStr);
+}
 
 // ── INIT ─────────────────────────────────────────────────
 
