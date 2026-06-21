@@ -5955,104 +5955,48 @@ function rebuildCitySelects(){
 
 
 function openDayModal(ds){
-
-
-
   editingDate=ds;
-
-
-
   const data=days[ds]||{};
-
-
-
   const [y,m,d]=ds.split('-');
-
-
-
   document.getElementById('modalTitle').textContent=`${parseInt(d)} de ${MONTHS_ES[parseInt(m)-1]} ${y}`;
 
+  // Step 1: populate <select> options
+  ['dayCity','wishCity'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel) return;
+    sel.innerHTML='<option value="">— Sin ciudad —</option>';
+    cities.forEach(ci=>{ const o=document.createElement('option'); o.value=ci.name; o.textContent=ci.name; sel.appendChild(o); });
+  });
 
-
-  rebuildCitySelects();
-
-
-
+  // Step 2: set saved values BEFORE building chips grid
   document.getElementById('dayCity').value    = data.city      ||'';
-
-
-
   document.getElementById('hotelName').value  = data.hotelName ||'';
-
-
-
   document.getElementById('hotelFrom').value  = data.hotelFrom ||ds;
-
-
-
   document.getElementById('hotelTo').value    = data.hotelTo   ||ds;
-
-
-
   document.getElementById('hotelMap').value   = data.hotelMap  ||'';
-
-
-
   document.getElementById('budgetEst').value  = data.budgetEst ||'';
-
-
-
   document.getElementById('budgetReal').value = data.budgetReal||'';
-
-
-
   document.getElementById('dayNotes').value   = data.notes     ||'';
 
-
-
-
-
-
-
-  document.getElementById('dayCity').onchange=()=>rebuildCitySelects();
-
-  // load saved visitCities
+  // Step 3: build visit-chips grid (base city is now set — gets excluded correctly)
   rebuildCitySelects();
+  document.getElementById('dayCity').onchange = ()=>rebuildCitySelects();
+
+  // Step 4: restore selected visit cities
   const savedVC=data.visitCities||[];
   document.querySelectorAll('.visit-city-btn').forEach(btn=>{
     if(savedVC.includes(btn.dataset.city)){ btn.classList.add('selected'); btn.style.borderColor='var(--ct)'; }
   });
 
+  // transports
   const tl=document.getElementById('transportList'); tl.innerHTML='';
-
-
-
   (data.transports||[]).forEach(t=>addTransportField(t));
 
-
-
-
-
-
-
+  // activities
   const al=document.getElementById('actList'); al.innerHTML='';
-
-
-
   (data.activities||[]).forEach(a=>addActivityField(a));
 
-
-
-
-
-
-
   document.getElementById('dayOverlay').classList.add('open');
-
-
-
 }
-
 
 
 
