@@ -549,10 +549,13 @@ a.hotel-tag:hover { text-decoration:underline; }
   .wrap { padding:12px 10px 60px; }
 
   /* ── CONTROLS ROW ── */
-  .controls-row { gap:8px; padding:10px 12px; }
+  .controls-row { gap:8px; padding:10px 12px; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  #legendChips { display:flex; flex-wrap:nowrap; gap:6px; overflow-x:auto; }
+  .legend-chip { flex-shrink:0; }
+  .controls-row { flex-wrap:wrap !important; }
   .shift-group {
     width:100%; justify-content:space-between; margin-left:0;
-    padding:6px 12px;
+    padding:6px 12px; flex-shrink:0;
   }
   .sbtn { padding:10px 16px; font-size:.85rem; }
   .shift-group input[type=number] { width:56px; height:36px; font-size:.9rem; }
@@ -731,11 +734,11 @@ header {
   .city-thumb-name { font-size:1rem; }
   .city-thumb-sub { display:block; font-size:.62rem; }  /* enough room to show */
 
-  /* Tabs — these phones have enough width for short labels */
-  .tab-short { display:none; }
-  .tab-full { display:inline; }
-  .tab-btn { padding:12px 14px; font-size:.78rem; }
-  .tabs-bar { overflow-x:auto; }
+  /* Tabs — emoji only + scrollable at device width */
+  .tab-short { display:inline; }
+  .tab-full { display:none; }
+  .tab-btn { padding:12px 16px; font-size:1.1rem; min-width:44px; }
+  .tabs-bar { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 
   /* Modal full width */
   .modal { width:100vw; border-radius:16px 16px 0 0; align-self:flex-end; }
@@ -2560,7 +2563,7 @@ async function updateRate() {
     toast('✅ Tasa actualizada');
   } catch(e) {
     rateEl.textContent='↻';
-    toast('Sin conexión — usando tasa guardada');
+    const w=document.getElementById('currencyWidget'); if(w&&w.offsetParent!==null) toast('Sin conexión — usando tasa guardada');
   }
 }
 
