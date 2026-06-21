@@ -794,6 +794,26 @@ a.hotel-tag:hover { text-decoration:underline; }
 
 
 
+/* ── EVENTS ── */
+.event-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:.65rem; font-weight:800;
+  padding:1px 5px; border-radius:4px;
+  margin-top:2px; cursor:pointer;
+  white-space:nowrap;
+}
+.event-badge.warn { background:#fef2f2; color:#b91c1c; border:1px solid #fca5a5; }
+.event-badge.info { background:#fffbeb; color:#b45309; border:1px solid #fcd34d; }
+.dv-event {
+  display:flex; align-items:flex-start; gap:10px;
+  border-radius:10px; padding:12px 16px; margin-bottom:14px;
+  line-height:1.4;
+}
+.dv-event.warn { background:#fef2f2; border:1.5px solid #fca5a5; }
+.dv-event.info { background:#fffbeb; border:1.5px solid #fcd34d; }
+.dv-event .ev-icon { font-size:1.4rem; flex-shrink:0; }
+.dv-event .ev-msg { font-size:.85rem; color:var(--text); }
+
 /* ── WEATHER ── */
 .weather-badge {
   display:flex; align-items:center; gap:3px;
@@ -2749,6 +2769,17 @@ function buildMonth(year, month, gridId) {
     const num = document.createElement('div');
 
     num.className='day-num'; num.textContent=d; cell.appendChild(num);
+
+    // Event alert badge
+    const ev = getEventForDate(ds);
+    if (ev) {
+      const eb = document.createElement('div');
+      eb.className = 'event-badge '+ev.level;
+      eb.textContent = ev.level==='warn' ? '⚠️' : 'ℹ️';
+      eb.title = ev.msg;
+      eb.onclick = e => { e.stopPropagation(); alert(ev.msg); };
+      cell.appendChild(eb);
+    }
 
 
 
@@ -4797,6 +4828,16 @@ function renderDayView() {
     cont.appendChild(sec);
   }
 
+  // Event alert
+  const ev = getEventForDate(dvCurrentDate);
+  if (ev) {
+    const evSec = document.createElement('div');
+    evSec.className = 'dv-event '+ev.level;
+    evSec.innerHTML = '<span class="ev-icon">'+(ev.level==='warn'?'⚠️':'ℹ️')+'</span>'+
+      '<span class="ev-msg">'+ev.msg+'</span>';
+    cont.insertBefore(evSec, cont.firstChild);
+  }
+
   // Weather — inject async after render
   if (data.city) {
     const wSec = document.createElement('div');
@@ -5152,6 +5193,38 @@ async function getWeather(cityName, dateStr) {
     return real || getHistoricalClimate(cityName, dateStr);
   }
   return getHistoricalClimate(cityName, dateStr);
+}
+
+// ── EVENTS / ALERTS ──────────────────────────────────────────────────────────
+// Format: 'YYYY-MM-DD': { level: 'warn'|'info', msg: '...' }
+// level warn = ⚠️ (rojo, replantear), level info = ℹ️ (amarillo, tener en cuenta)
+const TRAVEL_EVENTS = {
+  // ── FERIADOS NACIONALES ITALIA ──────────────────────────────────────────────
+  '2026-08-15': { level:'warn', msg:'Ferragosto — TODO CIERRA. El día de fiesta más importante de Italia. Museos, tiendas, restaurantes cerrados. Plazas y playas a tope.' },
+  '2026-09-08': { level:'info', msg:'Festivo local en muchos pueblos de Puglia — verificar horarios antes de visitar museos.' },
+
+  // ── EVENTOS PUGLIA — AGOSTO ─────────────────────────────────────────────────
+  '2026-08-01': { level:'info', msg:'Agosto — alta temporada plena. Precios al máximo, playas y atracciones muy concurridas. Reservar todo con antelación.' },
+  '2026-08-08': { level:'info', msg:"Festival della Valle d'Itria (Martina Franca) — opera y música clásica. Alrededor del 5-15 ago. Ambiente especial pero afluencia alta." },
+  '2026-08-14': { level:'warn', msg:'Víspera de Ferragosto — grandes migraciones en autopistas y trenes. Evitar desplazamientos largos.' },
+  '2026-08-16': { level:'info', msg:'Día post-Ferragosto — muchos lugares siguen cerrados. Comprobar antes de salir.' },
+  '2026-08-22': { level:'warn', msg:'La Notte della Taranta — Melpignano (30 min de Lecce). Evento masivo: 100.000+ asistentes. Tráfico caótico en toda la zona del Salento.' },
+
+  // ── EVENTOS PUGLIA — SEPTIEMBRE ─────────────────────────────────────────────
+  '2026-09-07': { level:'info', msg:'Festa della Madonna della Madia — Monopoli. Procesión histórica en barca. Centro cortado al tráfico.' },
+  '2026-09-19': { level:'info', msg:'San Gennaro — Nápoles. Festividad del patrón de la ciudad. Multitudes en el centro histórico.' },
+
+  // ── CLIMA EXTREMO — AGOSTO ITALIA ───────────────────────────────────────────
+  '2026-08-03': { level:'info', msg:'Primera semana de agosto — pico de calor. Puglia puede superar 40°C. Planear actividades para mañana temprano o tarde-noche.' },
+
+  // ── VIAJES EN TEMPORADA ALTA ─────────────────────────────────────────────────
+  '2026-08-09': { level:'info', msg:'Fin de semana de alta temporada — Polignano, Alberobello y Grotte di Castellana al máximo de afluencia.' },
+  '2026-08-30': { level:'info', msg:'Último fin de semana de agosto — inicio descenso de turistas. Precios bajan y ambiente más tranquilo.' },
+};
+
+// Returns event for a given date (or null)
+function getEventForDate(dateStr) {
+  return TRAVEL_EVENTS[dateStr] || null;
 }
 
 // ── INIT ─────────────────────────────────────────────────
