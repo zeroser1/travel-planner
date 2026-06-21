@@ -5141,7 +5141,12 @@ async function fetchRealWeather(cityName, dateStr) {
 }
 
 async function getWeather(cityName, dateStr) {
-  if (!cityName || !CITY_COORDS[cityName]) return null;
+  if (!cityName) return null;
+  if (!CITY_COORDS[cityName]) {
+    const norm=cityName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const match=Object.keys(CITY_COORDS).find(k=>k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')=== norm);
+    if (match) cityName=match; else return null;
+  }
   if (isWithin14Days(dateStr)) {
     const real = await fetchRealWeather(cityName, dateStr);
     return real || getHistoricalClimate(cityName, dateStr);
