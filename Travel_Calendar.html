@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Travel Planner</title>
+<style>
+:root {
+  --blue:#4F7FD4; --blue-dark:#2d5cad; --blue-soft:#e8f0fb;
+  --teal:#38B2AC; --teal-soft:#e6f7f6;
+  --bg:#f0f2f5; --card:#fff; --border:#dde3ed;
+  --text:#1a2233; --muted:#7a8899; --danger:#e55353;
+  --radius:12px; --shadow:0 2px 12px rgba(0,0,0,.10);
+}
+
+/* CITY PALETTE */
+.city-1  { --cc:#DBEAFE; --ct:#1d4ed8; }
+.city-2  { --cc:#D1FAE5; --ct:#065f46; }
+.city-3  { --cc:#FEF3C7; --ct:#92400e; }
+.city-4  { --cc:#FCE7F3; --ct:#9d174d; }
+.city-5  { --cc:#EDE9FE; --ct:#5b21b6; }
+.city-6  { --cc:#FEE2E2; --ct:#991b1b; }
+.city-7  { --cc:#E0F2FE; --ct:#075985; }
+.city-8  { --cc:#ECFDF5; --ct:#047857; }
+.city-none{ --cc:#eef0f3; --ct:#7a8899; }
+
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:"Segoe UI",sans-serif;
+  background: var(--bg);
+  /* subtle diagonal texture */
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 28px,
+    rgba(255,255,255,.45) 28px,
+    rgba(255,255,255,.45) 29px
+  );
+  color:var(--text); min-height:100vh; min-height:100dvh;
+}
+
+/* ── HEADER ── */
+header {
+  background:linear-gradient(135deg,#1a2f52 0%,#2d4a7a 100%);
+  color:#fff; padding:16px 28px;
+  display:flex; align-items:center; gap:16px;
+  position:sticky; top:0; z-index:200;
+  box-shadow:0 3px 16px rgba(0,0,0,.3);
+}
+.header-icon { font-size:1.6rem; }
+header h1 { font-size:1.2rem; font-weight:700; letter-spacing:.02em; }
+header h1 span { font-size:.8rem; font-weight:400; color:#a8c4e8; display:block; margin-top:1px; }
+.header-actions { margin-left:auto; display:flex; gap:10px; align-items:center; }
+.hbtn {
+  padding:7px 16px; border-radius:20px; border:none; cursor:pointer;
+  font-size:.8rem; font-weight:600; transition:all .15s;
+}
+.hbtn-ghost { background:rgba(255,255,255,.12); color:#fff; }
+.hbtn-ghost:hover { background:rgba(255,255,255,.22); }
+.hbtn-primary { background:#4F7FD4; color:#fff; }
+.hbtn-primary:hover { background:#2d5cad; }
+.hbtn-short { display:none; }
+
+/* ── TABS ── */
+.tabs-bar {
+  background:#fff; border-bottom:2px solid var(--border);
+  display:flex; padding:0 28px; gap:0;
+  position:sticky; top:60px; z-index:150;
+  box-shadow:0 2px 6px rgba(0,0,0,.06);
+}
+.tab-btn {
+  padding:14px 22px; border:none; background:none; cursor:pointer;
+  font-size:.9rem; font-weight:600; color:var(--muted);
+  border-bottom:3px solid transparent; margin-bottom:-2px;
+  transition:all .15s; display:flex; align-items:center; gap:7px;
+}
+.tab-btn:hover { color:var(--text); }
+.tab-btn.active { color:var(--blue); border-bottom-color:var(--blue); }
+.tab-short { display:none; }   /* shown only on mobile */
+
+/* ── WRAP ── */
+.wrap { max-width:1440px; margin:0 auto; padding:24px 20px 60px; }
+
+/* ── TOP CONTROLS ROW ── */
+.controls-row {
+  display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:14px 18px;
+  margin-bottom:24px; box-shadow:var(--shadow);
+}
+.controls-row h2 { font-size:.78rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+.legend-chip {
+  display:flex; align-items:center; gap:6px;
+  padding:5px 12px 5px 8px; border-radius:20px;
+  font-size:.82rem; font-weight:700; cursor:default;
+  background:var(--cc); color:var(--ct);
+  border:2px solid transparent;
+}
+.legend-chip .dot { width:9px; height:9px; border-radius:50%; background:var(--ct); flex-shrink:0; }
+.ctrl-btn {
+  padding:6px 16px; border-radius:20px; border:none; cursor:pointer;
+  font-size:.82rem; font-weight:600; transition:background .15s;
+}
+.ctrl-add  { background:var(--blue-soft); color:var(--blue); border:2px dashed var(--blue); }
+.ctrl-add:hover { background:#d5e5fa; }
+.shift-group { display:flex; align-items:center; gap:8px; margin-left:auto; background:var(--blue-soft); border:1.5px solid var(--blue); border-radius:20px; padding:4px 14px; }
+.shift-group span { font-size:.78rem; font-weight:600; color:var(--blue); }
+.shift-group input[type=number] { width:48px; padding:3px 6px; border:1.5px solid var(--border); border-radius:6px; font-size:.82rem; text-align:center; outline:none; }
+.sbtn { padding:4px 12px; border-radius:8px; font-size:.8rem; font-weight:700; border:none; cursor:pointer; }
+.sbtn-prev { background:#dbeafe; color:#1d4ed8; }
+.sbtn-prev:hover { background:#bfdbfe; }
+.sbtn-next { background:#d1fae5; color:#065f46; }
+.sbtn-next:hover { background:#a7f3d0; }
+
+/* ── BUDGET BAR ── */
+.budget-bar {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:14px 20px;
+  margin-bottom:24px; box-shadow:var(--shadow);
+  display:flex; gap:28px; align-items:center; flex-wrap:wrap;
+}
+.budget-bar h2 { font-size:.78rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+.budget-stat { text-align:center; }
+.budget-stat .val { font-size:1.3rem; font-weight:800; color:var(--blue); }
+.budget-stat .lbl { font-size:.7rem; color:var(--muted); }
+.budget-track { flex:1; min-width:200px; }
+.budget-track-bar { height:8px; background:#e8edf5; border-radius:4px; overflow:hidden; margin-top:6px; }
+.budget-track-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--teal)); border-radius:4px; transition:width .3s; }
+
+/* ── MONTH TITLE ── */
+.month-title {
+  font-size:1.1rem; font-weight:800; color:#1a2233;
+  margin-bottom:10px; margin-top:6px;
+  display:flex; align-items:center; gap:10px;
+}
+.month-title span { font-size:.83rem; font-weight:400; color:var(--muted); }
+
+/* ── WEEK LABELS ── */
+.week-labels { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:5px; }
+.week-labels div { text-align:center; font-size:.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; padding:4px 0; }
+.week-labels .we { color:var(--blue); }
+
+/* ── CALENDAR GRID ── */
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:32px; }
+.day {
+  background:var(--cc,var(--card));
+  border:1.5px solid var(--border);
+  border-radius:10px; min-height:136px; padding:8px;
+  display:flex; flex-direction:column; gap:3px;
+  cursor:pointer; transition:box-shadow .15s,border-color .15s; position:relative;
+}
+.day:hover { box-shadow:0 4px 14px rgba(79,127,212,.2); border-color:var(--blue); z-index:2; }
+.day.empty { background:transparent; border-color:transparent; cursor:default; pointer-events:none; }
+.day.has-city { border-color:var(--ct,var(--border)); }
+.day.today .day-num { background:var(--blue); color:#fff !important; }
+.day-num {
+  font-size:.79rem; font-weight:800; color:var(--ct,var(--muted));
+  width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.city-lbl {
+  font-size:.67rem; font-weight:800; color:var(--ct,transparent);
+  text-transform:uppercase; letter-spacing:.05em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.city-lbl:empty { display:none; }
+.transport-tag {
+  display:flex; align-items:center; gap:3px;
+  background:rgba(0,0,0,.07); border-radius:5px;
+  padding:2px 6px; font-size:.64rem; font-weight:600;
+  color:var(--ct,var(--text)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.hotel-tag {
+  display:flex; align-items:center; gap:3px;
+  background:rgba(255,255,255,.7); border:1px solid rgba(0,0,0,.09);
+  border-radius:5px; padding:2px 6px; font-size:.64rem; font-weight:600;
+  color:var(--ct,var(--text)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  text-decoration:none; max-width:100%;
+}
+a.hotel-tag:hover { text-decoration:underline; }
+.budget-tag {
+  margin-top:auto; font-size:.63rem; font-weight:700;
+  color:var(--ct,var(--muted)); display:flex; gap:4px; flex-wrap:wrap;
+}
+.budget-tag .est { opacity:.7; }
+.budget-tag .real { background:rgba(255,255,255,.6); border-radius:3px; padding:0 4px; }
+.activities { display:flex; flex-direction:column; gap:2px; overflow:hidden; }
+.activity-item {
+  font-size:.64rem; color:var(--ct,var(--text));
+  background:rgba(255,255,255,.55); border-radius:4px;
+  padding:2px 5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.activity-item::before { content:"• "; }
+.more-badge { font-size:.62rem; color:var(--ct,var(--muted)); font-style:italic; padding:0 5px; }
+
+/* ── WISHLIST TAB ── */
+/* city grid */
+.city-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; margin-bottom:28px; }
+.city-thumb {
+  border-radius:16px; overflow:hidden; cursor:pointer;
+  box-shadow:0 3px 14px rgba(0,0,0,.12);
+  transition:transform .18s, box-shadow .18s;
+  position:relative;
+  aspect-ratio:4/3;
+  display:flex; flex-direction:column; justify-content:flex-end;
+}
+.city-thumb:hover { transform:translateY(-4px); box-shadow:0 10px 28px rgba(0,0,0,.22); }
+.city-thumb-bg {
+  position:absolute; inset:0;
+  background:linear-gradient(160deg, var(--cc-bg1) 0%, var(--cc-bg2) 100%);
+}
+.city-thumb-photo {
+  position:absolute; inset:0;
+  background-size:cover; background-position:center;
+  opacity:.57;
+  transition:opacity .3s;
+}
+.city-thumb:hover .city-thumb-photo { opacity:.7; }
+.city-thumb-emoji { position:absolute; top:18px; left:50%; transform:translateX(-50%); font-size:3.2rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,.18)); }
+.city-thumb-body { position:relative; padding:14px 16px; background:linear-gradient(to top, rgba(0,0,0,.45) 0%, transparent 100%); }
+.city-thumb-name { font-size:1.1rem; font-weight:900; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.5); }
+.city-thumb-sub  { font-size:.68rem; color:rgba(255,255,255,.8); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.city-thumb-pills { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
+.city-thumb-pill {
+  padding:2px 8px; border-radius:10px; font-size:.63rem; font-weight:700;
+  background:rgba(255,255,255,.22); color:#fff; backdrop-filter:blur(4px);
+  white-space:nowrap;
+}
+.city-thumb-pill.done-pill { background:rgba(56,178,172,.5); }
+.wish-global-add {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; padding:14px; border:2px dashed var(--blue); border-radius:16px;
+  background:var(--blue-soft); color:var(--blue); font-size:.9rem; font-weight:700;
+  cursor:pointer; transition:background .15s; margin-bottom:4px;
+}
+.wish-global-add:hover { background:#d5e5fa; }
+
+/* city detail panel (slides in from right) */
+#cityPanel {
+  position:fixed; inset:0; z-index:500;
+  display:flex; pointer-events:none;
+}
+#cityPanel.open { pointer-events:all; }
+#cityPanelBackdrop {
+  position:absolute; inset:0;
+  background:rgba(10,20,40,.0);
+  transition:background .3s;
+}
+#cityPanel.open #cityPanelBackdrop { background:rgba(10,20,40,.55); }
+#cityPanelSlide {
+  position:absolute; right:0; top:0; bottom:0;
+  width:min(680px,100vw);
+  background:var(--card);
+  box-shadow:-8px 0 40px rgba(0,0,0,.25);
+  display:flex; flex-direction:column;
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+#cityPanel.open #cityPanelSlide { transform:translateX(0); }
+
+/* panel header */
+#cpHeader {
+  padding:22px 24px 18px;
+  display:flex; align-items:flex-start; gap:14px;
+  flex-shrink:0; border-bottom:2px solid var(--border);
+}
+#cpEmoji { font-size:2.8rem; flex-shrink:0; line-height:1; }
+#cpTitleBlock { flex:1; min-width:0; }
+#cpTitle { font-size:1.5rem; font-weight:900; color:var(--text); }
+#cpSub   { font-size:.8rem; color:var(--muted); margin-top:2px; }
+#cpClose {
+  background:none; border:none; font-size:1.5rem; cursor:pointer;
+  color:var(--muted); padding:4px; border-radius:6px; flex-shrink:0;
+}
+#cpClose:hover { background:var(--bg); color:var(--text); }
+
+/* panel tabs */
+#cpTabs {
+  display:flex; border-bottom:2px solid var(--border);
+  flex-shrink:0; padding:0 24px; background:#fff;
+}
+.cp-tab {
+  padding:12px 18px; border:none; background:none; cursor:pointer;
+  font-size:.85rem; font-weight:700; color:var(--muted);
+  border-bottom:3px solid transparent; margin-bottom:-2px;
+  transition:all .15s;
+}
+.cp-tab.active { color:var(--blue); border-bottom-color:var(--blue); }
+.cp-tab:hover { color:var(--text); }
+
+/* panel body */
+#cpBody { flex:1; overflow-y:auto; padding:20px 24px 32px; }
+.cp-section { margin-bottom:24px; }
+.cp-section-title {
+  font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em;
+  color:var(--muted); margin-bottom:10px; padding-bottom:8px;
+  border-bottom:2px solid var(--border);
+  display:flex; align-items:center; gap:6px;
+}
+.cp-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 8px; border-radius:8px;
+  border-bottom:1px solid var(--border); transition:background .12s;
+  cursor:pointer;
+}
+.cp-item:last-of-type { border-bottom:none; }
+.cp-item:hover { background:#f5f7fb; }
+.cp-check {
+  width:20px; height:20px; flex-shrink:0; margin-top:1px;
+  border:2px solid var(--border); border-radius:5px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.75rem; transition:all .15s; background:#fff;
+}
+.cp-check.on { background:var(--teal); border-color:var(--teal); color:#fff; }
+.cp-item-info { flex:1; min-width:0; }
+.cp-item-name { font-size:.92rem; font-weight:700; color:var(--text); line-height:1.3; }
+.cp-item-name.done { text-decoration:line-through; opacity:.35; }
+.cp-item-note { font-size:.74rem; color:var(--muted); margin-top:3px; line-height:1.4; }
+.cp-maps { display:inline-flex; align-items:center; gap:3px; margin-top:5px; padding:3px 10px; border-radius:6px; background:#e8f0fb; border:1px solid #b3cef5; font-size:.68rem; font-weight:700; color:var(--blue); text-decoration:none; }
+.cp-maps:hover { background:#d5e5fa; }
+.cp-item-actions { display:flex; gap:4px; flex-shrink:0; padding-top:2px; }
+.cp-del { background:none; border:none; color:var(--danger); font-size:.8rem; cursor:pointer; opacity:0; padding:3px 6px; border-radius:4px; transition:opacity .15s; }
+.cp-item:hover .cp-del { opacity:.5; }
+.cp-del:hover { opacity:1 !important; background:#fee2e2; }
+.cp-add-btn {
+  margin-top:10px; width:100%; padding:9px; border:1.5px dashed var(--blue);
+  border-radius:8px; background:none; color:var(--blue); font-size:.8rem;
+  font-weight:700; cursor:pointer; transition:background .15s;
+}
+.cp-add-btn:hover { background:var(--blue-soft); }
+
+/* panel add-item form (inline) */
+#cpAddForm {
+  background:#f8fafc; border:1.5px solid var(--border);
+  border-radius:10px; padding:14px; margin-top:10px;
+  display:none; flex-direction:column; gap:8px;
+}
+#cpAddForm.open { display:flex; }
+#cpAddForm input, #cpAddForm select {
+  padding:8px 11px; border:1.5px solid var(--border); border-radius:7px;
+  font-size:.85rem; font-family:inherit; outline:none;
+  transition:border-color .15s; background:#fff;
+}
+#cpAddForm input:focus, #cpAddForm select:focus { border-color:var(--blue); }
+#cpAddForm .add-form-row { display:flex; gap:8px; }
+#cpAddForm .add-form-row button { flex-shrink:0; padding:8px 16px; border-radius:7px; font-size:.83rem; font-weight:700; border:none; cursor:pointer; }
+.af-save { background:var(--blue); color:#fff; }
+.af-save:hover { background:var(--blue-dark); }
+.af-cancel { background:var(--bg); color:var(--muted); border:1.5px solid var(--border) !important; }
+
+/* ── TRANSPORT PLANNER TAB ── */
+.tp-label { font-size:.78rem; font-weight:700; color:var(--muted); display:block; margin-bottom:5px; }
+.tp-input { width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:.88rem; font-family:inherit; color:var(--text); background:#fafbfd; outline:none; transition:border-color .15s; }
+.tp-input:focus { border-color:var(--blue); }
+.tp-entry { display:flex; align-items:center; gap:12px; padding:12px 14px; background:var(--card); border:1.5px solid var(--border); border-radius:10px; margin-bottom:8px; }
+.tp-entry-icon { font-size:1.4rem; flex-shrink:0; }
+.tp-entry-info { flex:1; min-width:0; }
+.tp-entry-route { font-size:.9rem; font-weight:700; color:var(--text); }
+.tp-entry-detail { font-size:.76rem; color:var(--muted); margin-top:2px; }
+.tp-entry-del { background:none; border:none; color:var(--danger); cursor:pointer; font-size:1rem; padding:4px 8px; border-radius:6px; opacity:.5; }
+.tp-entry-del:hover { opacity:1; background:#fee2e2; }
+
+/* ── DOCS TAB ── */
+#tabDocs .docs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+.doc-card {
+  background:var(--card); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:18px; box-shadow:var(--shadow);
+}
+.doc-card h3 { font-size:.82rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+.doc-field { margin-bottom:10px; }
+.doc-field label { font-size:.74rem; font-weight:600; color:var(--muted); display:block; margin-bottom:3px; }
+.doc-field input { width:100%; padding:7px 11px; border:1.5px solid var(--border); border-radius:8px; font-size:.88rem; font-family:inherit; outline:none; transition:border-color .15s; }
+.doc-field input:focus { border-color:var(--blue); }
+.copy-val { cursor:pointer; font-size:.7rem; color:var(--blue); margin-left:4px; }
+.copy-val:hover { text-decoration:underline; }
+.doc-save-btn { margin-top:6px; padding:7px 20px; background:var(--blue); color:#fff; border:none; border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer; }
+.doc-save-btn:hover { background:var(--blue-dark); }
+
+/* ── OVERLAYS & MODALS ── */
+.overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(10,20,40,.55); z-index:400;
+  align-items:center; justify-content:center;
+}
+.overlay.open { display:flex; }
+.modal {
+  background:var(--card); border-radius:16px; padding:26px;
+  width:min(560px,96vw); max-height:92vh; overflow-y:auto;
+  box-shadow:0 24px 64px rgba(0,0,0,.4); position:relative;
+}
+.modal-wide { width:min(700px,96vw); }
+.modal h3 { font-size:1.05rem; font-weight:800; color:#1a2233; margin-bottom:16px; }
+.modal label { font-size:.78rem; font-weight:700; color:var(--muted); display:block; margin-bottom:4px; margin-top:14px; }
+.modal input,.modal select,.modal textarea {
+  width:100%; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px;
+  font-size:.88rem; font-family:inherit; color:var(--text); background:#fafbfd; outline:none; transition:border-color .15s;
+}
+.modal input:focus,.modal select:focus,.modal textarea:focus { border-color:var(--blue); }
+.modal textarea { resize:vertical; min-height:70px; }
+.btn-row { display:flex; gap:10px; margin-top:22px; justify-content:flex-end; }
+.btn { padding:9px 20px; border-radius:8px; font-size:.88rem; font-weight:700; border:none; cursor:pointer; transition:background .15s; }
+.btn-primary { background:var(--blue); color:#fff; }
+.btn-primary:hover { background:var(--blue-dark); }
+.btn-danger  { background:#fee2e2; color:#991b1b; }
+.btn-danger:hover  { background:#fecaca; }
+.btn-ghost   { background:var(--bg); color:var(--text); border:1.5px solid var(--border); }
+.btn-ghost:hover   { background:var(--border); }
+.close-btn { position:absolute; top:14px; right:16px; background:none; border:none; font-size:1.3rem; cursor:pointer; color:var(--muted); }
+.close-btn:hover { color:var(--text); }
+
+/* transport entries in modal */
+#transportList { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+.transport-entry {
+  background:#f8fafc; border:1.5px solid var(--border);
+  border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:8px; position:relative;
+}
+.del-transport { position:absolute; top:7px; right:8px; background:none; border:none; color:var(--danger); font-size:.9rem; cursor:pointer; padding:2px 6px; border-radius:4px; }
+.del-transport:hover { background:#fee2e2; }
+.t-row { display:flex; gap:8px; }
+.t-row > div { flex:1; }
+.t-row .t-mode { flex:0 0 150px; }
+.t-sub { font-size:.7rem; color:var(--muted); margin-bottom:2px; }
+.t-row input,.t-row select { padding:6px 8px; font-size:.83rem; }
+.pnr-row { display:flex; gap:6px; align-items:center; }
+.pnr-row input { flex:1; font-size:.8rem; padding:6px 10px; }
+.pnr-copy { background:var(--blue-soft); border:1px solid var(--blue); color:var(--blue); border-radius:6px; padding:4px 10px; font-size:.75rem; cursor:pointer; white-space:nowrap; }
+.pnr-copy:hover { background:#d5e5fa; }
+#addTransportBtn { margin-top:4px; padding:5px 14px; background:var(--blue-soft); color:var(--blue); border:1.5px dashed var(--blue); border-radius:6px; font-size:.8rem; font-weight:700; cursor:pointer; }
+#addTransportBtn:hover { background:#d5e5fa; }
+
+/* hotel multi-day */
+.hotel-range-row { display:flex; gap:10px; }
+.hotel-range-row > div { flex:1; }
+
+/* activities list */
+#actList { display:flex; flex-direction:column; gap:6px; margin-top:4px; }
+.act-row { display:flex; gap:6px; align-items:center; }
+.act-row input { flex:1; }
+.del-act { background:none; border:none; color:var(--danger); font-size:1rem; cursor:pointer; padding:2px 6px; border-radius:4px; }
+.del-act:hover { background:#fee2e2; }
+#addActBtn { margin-top:6px; padding:5px 14px; background:var(--blue-soft); color:var(--blue); border:1.5px dashed var(--blue); border-radius:6px; font-size:.8rem; font-weight:700; cursor:pointer; }
+#addActBtn:hover { background:#d5e5fa; }
+
+/* budget inline in modal */
+.budget-row { display:flex; gap:10px; }
+.budget-row > div { flex:1; }
+.budget-row input { padding:7px 10px; font-size:.85rem; }
+
+/* city manager */
+.city-mgr-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); }
+.city-mgr-row:last-child { border-bottom:none; }
+.city-swatch { width:18px; height:18px; border-radius:4px; flex-shrink:0; }
+.city-mgr-row input[type=text] { flex:1; padding:5px 10px; border:1.5px solid var(--border); border-radius:6px; font-size:.85rem; }
+.del-city { background:none; border:none; color:var(--danger); font-size:1rem; cursor:pointer; padding:2px 6px; border-radius:4px; }
+.del-city:hover { background:#fee2e2; }
+
+/* wish modal */
+.wish-type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:4px; }
+.wish-type-btn {
+  padding:8px; border:2px solid var(--border); border-radius:8px;
+  font-size:.78rem; font-weight:700; background:none; cursor:pointer; transition:all .15s;
+}
+.wish-type-btn.sel { border-color:var(--blue); background:var(--blue-soft); color:var(--blue); }
+
+/* section separator */
+.section-sep { border:none; border-top:1px solid var(--border); margin:18px 0 4px; }
+
+/* print */
+@media print {
+  header,#teamsBanner,.tabs-bar,.controls-row,.budget-bar,.hbtn,.ctrl-btn,.shift-group { display:none !important; }
+  .wrap { padding:0; }
+  .cal-grid { gap:3px; }
+  .day { min-height:90px; break-inside:avoid; }
+  #tabWishlist,#tabDocs { display:none !important; }
+}
+
+/* teams banner */
+#teamsBanner {
+  background:#1B3A5E; color:#fff; padding:9px 24px; font-size:.82rem;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+#teamsBanner a { color:#91C8F6; font-weight:600; }
+#teamsBanner button { background:none; border:1px solid #91C8F6; color:#91C8F6; border-radius:6px; padding:3px 12px; cursor:pointer; font-size:.78rem; }
+
+/* toast */
+#toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(60px);
+  background:#1a2233; color:#fff; padding:10px 22px; border-radius:20px;
+  font-size:.85rem; font-weight:600; z-index:999; transition:transform .25s;
+  pointer-events:none; white-space:nowrap;
+}
+#toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ═══════════════════════════════════════════════
+   MOBILE  ≤ 480px
+═══════════════════════════════════════════════ */
+@media (max-width: 480px) {
+
+  /* ── HEADER ── */
+  .header-icon { font-size:1.2rem; }
+  header h1 { font-size:1rem; }
+  header h1 span { display:none; }
+  .hbtn-full { display:none; }
+  .hbtn-short { display:inline; }
+  .no-mobile { display:none !important; }
+  .hbtn { padding:7px 10px; font-size:1rem; }
+
+  /* ── TABS BAR ── */
+  .tabs-bar {
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    padding:0 8px; gap:0; scrollbar-width:none;
+  }
+  .tabs-bar::-webkit-scrollbar { display:none; }
+  .tab-full { display:none; }
+  .tab-short { display:inline; font-size:1.2rem; }
+  .tab-btn { padding:12px 16px; font-size:1.1rem; min-width:44px; }
+
+  /* ── WRAP ── */
+  .wrap { padding:12px 10px 60px; }
+
+  /* ── CONTROLS ROW ── */
+  .controls-row { gap:8px; padding:10px 12px; }
+  .shift-group {
+    width:100%; justify-content:space-between; margin-left:0;
+    padding:6px 12px;
+  }
+  .sbtn { padding:10px 16px; font-size:.85rem; }
+  .shift-group input[type=number] { width:56px; height:36px; font-size:.9rem; }
+
+  /* ── CALENDAR GRID ── */
+  .cal-grid { gap:3px; margin-bottom:20px; }
+  .day {
+    min-height:64px; padding:4px 3px;
+    border-radius:7px; gap:2px;
+  }
+  .day-num { width:20px; height:20px; font-size:.7rem; }
+
+  /* hide rich content on mobile cells — all accessible via tap */
+  .city-lbl, .transport-tag, .hotel-tag, .budget-tag, .activities, .more-badge {
+    display:none !important;
+  }
+
+  /* colored bottom strip to indicate city */
+  .day.has-city::after {
+    content:'';
+    display:block;
+    height:3px;
+    border-radius:2px;
+    background:var(--ct, transparent);
+    margin-top:auto;
+  }
+
+  /* week labels */
+  .week-labels div { font-size:.65rem; padding:2px 0; }
+  .month-title { font-size:.95rem; }
+
+  /* ── MODAL ── */
+  .modal { padding:16px; border-radius:12px; width:100vw; max-height:95vh; }
+  .modal h3 { font-size:.95rem; margin-bottom:12px; }
+  .btn-row { flex-wrap:wrap; gap:8px; }
+  .btn-row .btn { flex:1; min-width:70px; text-align:center; padding:10px 10px; }
+
+  /* hotel range row — stack vertically */
+  .hotel-range-row { flex-direction:column; gap:8px; }
+
+  /* budget row — stack vertically */
+  .budget-row { flex-direction:column; gap:8px; }
+
+  /* transport entry rows in modal */
+  .t-row { flex-wrap:wrap; }
+  .t-row .t-mode { flex:0 0 100%; }
+  .t-row > div { flex:1; min-width:120px; }
+
+  /* ── CITY PANEL (full screen on mobile) ── */
+  #cityPanelSlide { width:100vw; }
+  #cpHeader { padding:14px 16px 12px; gap:10px; }
+  #cpEmoji { font-size:2rem; }
+  #cpTitle { font-size:1.2rem; }
+  #cpTabs {
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    padding:0 8px; scrollbar-width:none;
+  }
+  #cpTabs::-webkit-scrollbar { display:none; }
+  .cp-tab { padding:10px 14px; font-size:.82rem; white-space:nowrap; }
+  #cpBody { padding:14px 16px 40px; }
+  .cp-item { padding:10px 6px; }
+  .cp-item-name { font-size:.85rem; }
+
+  /* ── WISHLIST CITY GRID ── */
+  .city-grid { grid-template-columns:repeat(2, 1fr); gap:10px; }
+  .city-thumb { aspect-ratio:3/2; }
+  .city-thumb-emoji { font-size:2.4rem; top:14px; }
+  .city-thumb-name { font-size:.95rem; }
+  .city-thumb-sub { display:none; }
+
+  /* ── TRANSPORT PLANNER ── */
+  #tpGrid { grid-template-columns:1fr !important; }
+  #tpForm { padding:16px; border-radius:12px; }
+  #tpForm > div:last-child { flex-wrap:wrap; }
+  #tpForm > div:last-child button { width:100%; }
+
+  /* ── BUDGET BAR ── */
+  .budget-bar { gap:12px; padding:12px 14px; }
+  .budget-stat .val { font-size:1.05rem; }
+  .budget-track { min-width:100%; }
+
+  /* ── DOCS GRID ── */
+  #tabDocs .docs-grid { grid-template-columns:1fr; }
+
+  /* ── TOAST ── */
+  #toast { font-size:.78rem; padding:8px 16px; bottom:16px; }
+}
+
+/* ── EXTRA SMALL ≤ 360px ── */
+@media (max-width: 360px) {
+  .city-grid { grid-template-columns:1fr 1fr; gap:8px; }
+  .tab-btn { padding:10px 12px; }
+  .day { min-height:54px; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   SAFE AREA — iPhone 14 Pro Max (Dynamic Island + home bar)
+   + Samsung S23 Ultra (Android nav bar)
+══════════════════════════════════════════════════════════ */
+
+/* sticky header: push down below Dynamic Island / status bar */
+header {
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-left: max(28px, env(safe-area-inset-left));
+  padding-right: max(28px, env(safe-area-inset-right));
+}
+
+/* sticky tabs bar: sits just below header, needs no extra top inset */
+.tabs-bar {
+  padding-left: max(0px, env(safe-area-inset-left));
+  padding-right: max(0px, env(safe-area-inset-right));
+}
+
+/* city panel slide: full-screen panel needs bottom safe area for home bar */
+#cityPanelSlide {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* fixed toast: keep above Android nav bar / iPhone home bar */
+#toast {
+  bottom: max(24px, calc(env(safe-area-inset-bottom) + 12px));
+}
+
+/* fixed overlay backdrops: extend full screen including safe areas */
+.overlay, #cityPanel {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* modal: when it hits bottom of screen on short viewports, respect home bar */
+.modal {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* bottom wrap padding on calendar tab for Android nav bar clearance */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .wrap {
+    padding-bottom: max(60px, calc(env(safe-area-inset-bottom) + 40px));
+  }
+}
+
+/* ── iPhone 14 Pro Max specific (430px logical width) ── */
+@media only screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) {
+  header {
+    /* Dynamic Island area is ~59px — add a bit more breathing room */
+    padding-top: max(18px, env(safe-area-inset-top));
+  }
+  /* Panel close button: make sure it's not under the Dynamic Island */
+  #cpClose {
+    top: max(14px, env(safe-area-inset-top));
+  }
+}
+
+/* ── Samsung S23 Ultra specific (412px logical width) ── */
+@media only screen and (device-width: 412px) and (-webkit-device-pixel-ratio: 3) {
+  /* Chrome Android: use dvh to avoid address bar jump */
+  body { min-height: 100dvh; }
+
+  /* S23 Ultra punch-hole camera is top-right — keep header icons away */
+  .header-actions {
+    padding-right: 8px;
+  }
+}
+
+/* ── Both devices: breakpoint 430px (max of the two widths) ── */
+@media (max-width: 430px) {
+
+  /* Calendar cells — S23 Ultra and iPhone 14 PM are slightly wider than 390px
+     so give a tiny bit more space than the 480px breakpoint */
+  .cal-grid { gap:4px; }
+  .day { min-height:68px; border-radius:8px; }
+  .day-num { width:22px; height:22px; font-size:.75rem; }
+
+  /* Wishlist cards — 2 cols look great at 412–430px */
+  .city-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
+  .city-thumb { aspect-ratio:4/3; }
+  .city-thumb-name { font-size:1rem; }
+  .city-thumb-sub { display:block; font-size:.62rem; }  /* enough room to show */
+
+  /* Tabs — these phones have enough width for short labels */
+  .tab-short { display:none; }
+  .tab-full { display:inline; }
+  .tab-btn { padding:12px 14px; font-size:.78rem; }
+  .tabs-bar { overflow-x:auto; }
+
+  /* Modal full width */
+  .modal { width:100vw; border-radius:16px 16px 0 0; align-self:flex-end; }
+  .overlay { align-items:flex-end; }
+  #cityPanelSlide { width:100vw; }
+
+  /* Transport planner — single column */
+  #tpGrid { grid-template-columns:1fr !important; }
+}
+
+/* ── Pull-to-refresh prevention (both devices) ── */
+body { overscroll-behavior-y: contain; }
+html { touch-action: pan-x pan-y; }
+</style>
+</head>
+<body>
+
+<div id="teamsBanner">
+  ✈️ Abrí este archivo en un navegador para mejor experiencia.
+  <button onclick="this.parentElement.style.display='none'">✕</button>
+</div>
+
+<header>
+  <span class="header-icon">✈️</span>
+  <h1>Travel Planner <span id="tripName">Agosto – Septiembre 2026</span></h1>
+  <div class="header-actions">
+    <button class="hbtn hbtn-ghost" onclick="openCityManager()"><span class="hbtn-full">🏙 Ciudades</span><span class="hbtn-short">🏙</span></button>
+    <button class="hbtn hbtn-ghost" onclick="switchTab('tabDocs')"><span class="hbtn-full">📄 Docs</span><span class="hbtn-short">📄</span></button>
+    <button class="hbtn hbtn-ghost no-mobile" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+</header>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" id="btn-tabCalendar" onclick="switchTab('tabCalendar')"><span class="tab-full">📅 Calendario</span><span class="tab-short">📅</span></button>
+  <button class="tab-btn" id="btn-tabWishlist" onclick="switchTab('tabWishlist')"><span class="tab-full">⭐ Wishlist</span><span class="tab-short">⭐</span></button>
+  <button class="tab-btn" id="btn-tabDocs" onclick="switchTab('tabDocs')"><span class="tab-full">📄 Documentos</span><span class="tab-short">📄</span></button>
+  <button class="tab-btn" id="btn-tabTransport" onclick="switchTab('tabTransport')"><span class="tab-full">🚀 Transportes</span><span class="tab-short">🚀</span></button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB: CALENDAR
+═══════════════════════════════════════════════════ -->
+<div id="tabCalendar" class="wrap">
+
+  <!-- Controls -->
+  <div class="controls-row">
+    <h2>Ciudades:</h2>
+    <div id="legendChips"></div>
+    <button class="ctrl-btn ctrl-add" onclick="openCityManager()">+ Ciudad</button>
+    <div class="shift-group">
+      <span>Mover viaje</span>
+      <input type="number" id="shiftDays" value="1" min="1" max="60">
+      <span style="font-size:.72rem;color:var(--muted)">días</span>
+      <button class="sbtn sbtn-prev" onclick="shiftTrip(-1)">◀ Antes</button>
+      <button class="sbtn sbtn-next" onclick="shiftTrip(+1)">Después ▶</button>
+    </div>
+  </div>
+
+  <!-- Budget summary -->
+  <div class="budget-bar" id="budgetBar"></div>
+
+  <!-- August -->
+  <div class="month-title">Agosto 2026 <span>Aug</span></div>
+  <div class="week-labels">
+    <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div>
+    <div class="we">Sá</div><div class="we">Do</div>
+  </div>
+  <div class="cal-grid" id="grid-aug"></div>
+
+  <!-- September -->
+  <div class="month-title">Septiembre 2026 <span>Sep</span></div>
+  <div class="week-labels">
+    <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div>
+    <div class="we">Sá</div><div class="we">Do</div>
+  </div>
+  <div class="cal-grid" id="grid-sep"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB: WISHLIST
+═══════════════════════════════════════════════════ -->
+<div id="tabWishlist" class="wrap" style="display:none">
+  <div id="wishlistContent"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB: TRANSPORT PLANNER
+═══════════════════════════════════════════════════ -->
+<div id="tabTransport" class="wrap" style="display:none">
+
+  <div style="max-width:720px;margin:0 auto">
+
+    <div style="margin-bottom:20px">
+      <h2 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px">Planificador de transportes</h2>
+      <p style="font-size:.85rem;color:var(--muted)">Ingresá la info de un traslado y se agrega automáticamente al calendario en la fecha correcta.</p>
+    </div>
+
+    <div id="tpForm" style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:28px;box-shadow:var(--shadow)">
+
+      <div id="tpGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+        <!-- Fecha y modo -->
+        <div>
+          <label class="tp-label">Fecha de salida</label>
+          <input type="date" id="tp-date-dep" class="tp-input">
+        </div>
+        <div>
+          <label class="tp-label">Medio de transporte</label>
+          <select id="tp-mode" class="tp-input">
+            <option value="avion">✈️ Avión</option>
+            <option value="tren">🚆 Tren</option>
+            <option value="auto">🚗 Auto</option>
+            <option value="barco">🚢 Barco</option>
+            <option value="bus">🚌 Bus</option>
+            <option value="taxi">🚕 Taxi</option>
+            <option value="metro">🚇 Metro</option>
+            <option value="bici">🚲 Bici</option>
+          </select>
+        </div>
+
+        <!-- Origen / Destino -->
+        <div>
+          <label class="tp-label">Ciudad origen</label>
+          <input type="text" id="tp-from-city" class="tp-input" placeholder="ej. Buenos Aires">
+        </div>
+        <div>
+          <label class="tp-label">Ciudad destino</label>
+          <input type="text" id="tp-to-city" class="tp-input" placeholder="ej. Roma">
+        </div>
+
+        <!-- Horarios -->
+        <div>
+          <label class="tp-label">Hora salida</label>
+          <input type="time" id="tp-time-dep" class="tp-input">
+        </div>
+        <div>
+          <label class="tp-label">Hora llegada</label>
+          <input type="time" id="tp-time-arr" class="tp-input">
+        </div>
+
+        <!-- Fecha llegada (si es al día siguiente) -->
+        <div>
+          <label class="tp-label">Fecha llegada <span style="font-weight:400;opacity:.6">(si difiere)</span></label>
+          <input type="date" id="tp-date-arr" class="tp-input">
+        </div>
+        <div>
+          <label class="tp-label">N° de vuelo / localizador</label>
+          <input type="text" id="tp-ref" class="tp-input" placeholder="ej. IB3456 / ABC123">
+        </div>
+
+      </div>
+
+      <!-- Notas -->
+      <div style="margin-top:16px">
+        <label class="tp-label">Notas adicionales</label>
+        <input type="text" id="tp-notes" class="tp-input" placeholder="ej. Terminal 2, reclamar equipaje en cinta B">
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:22px;align-items:center">
+        <button onclick="addTransportToCalendar()" style="padding:11px 28px;background:var(--blue);color:#fff;border:none;border-radius:9px;font-size:.9rem;font-weight:700;cursor:pointer">Agregar al calendario →</button>
+        <button onclick="clearTpForm()" style="padding:11px 20px;background:var(--bg);color:var(--muted);border:1.5px solid var(--border);border-radius:9px;font-size:.88rem;font-weight:600;cursor:pointer">Limpiar</button>
+        <span id="tp-feedback" style="font-size:.85rem;color:var(--teal);font-weight:700;opacity:0;transition:opacity .3s"></span>
+      </div>
+    </div>
+
+    <!-- Trip summary -->
+    <div style="margin-top:28px">
+      <h3 style="font-size:.88rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Transportes cargados</h3>
+      <div id="tpSummary"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- City detail panel -->
+<div id="cityPanel">
+  <div id="cityPanelBackdrop" onclick="closeCityPanel()"></div>
+  <div id="cityPanelSlide">
+    <div id="cpHeader">
+      <span id="cpEmoji"></span>
+      <div id="cpTitleBlock">
+        <div id="cpTitle"></div>
+        <div id="cpSub"></div>
+      </div>
+      <button id="cpClose" onclick="closeCityPanel()">✕</button>
+    </div>
+    <div id="cpTabs"></div>
+    <div id="cpBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB: DOCUMENTS
+═══════════════════════════════════════════════════ -->
+<div id="tabDocs" class="wrap" style="display:none">
+  <div class="docs-grid">
+
+    <div class="doc-card">
+      <h3>🛂 Pasaporte</h3>
+      <div class="doc-field"><label>Número</label><input id="doc-passport-num" type="text" placeholder="AAA000000"></div>
+      <div class="doc-field"><label>Vencimiento</label><input id="doc-passport-exp" type="date"></div>
+      <div class="doc-field"><label>País emisor</label><input id="doc-passport-country" type="text"></div>
+      <button class="doc-save-btn" onclick="saveDocs()">Guardar</button>
+    </div>
+
+    <div class="doc-card">
+      <h3>🏥 Seguro de viaje</h3>
+      <div class="doc-field"><label>Compañía</label><input id="doc-ins-company" type="text"></div>
+      <div class="doc-field"><label>N° de póliza</label><input id="doc-ins-policy" type="text"></div>
+      <div class="doc-field"><label>Teléfono emergencias</label><input id="doc-ins-phone" type="tel" placeholder="+54 ..."></div>
+      <div class="doc-field"><label>Vigencia hasta</label><input id="doc-ins-exp" type="date"></div>
+      <button class="doc-save-btn" onclick="saveDocs()">Guardar</button>
+    </div>
+
+    <div class="doc-card">
+      <h3>🆘 Emergencias</h3>
+      <div class="doc-field"><label>Contacto 1 — nombre</label><input id="doc-em1-name" type="text"></div>
+      <div class="doc-field"><label>Contacto 1 — teléfono</label><input id="doc-em1-phone" type="tel"></div>
+      <div class="doc-field"><label>Contacto 2 — nombre</label><input id="doc-em2-name" type="text"></div>
+      <div class="doc-field"><label>Contacto 2 — teléfono</label><input id="doc-em2-phone" type="tel"></div>
+      <button class="doc-save-btn" onclick="saveDocs()">Guardar</button>
+    </div>
+
+    <div class="doc-card">
+      <h3>✈️ Vuelos / Localizadores</h3>
+      <div id="pnrList"></div>
+      <button class="doc-save-btn" style="margin-top:8px;background:var(--blue-soft);color:var(--blue);border:2px dashed var(--blue)" onclick="addPnrEntry()">+ Agregar</button>
+      <button class="doc-save-btn" style="margin-top:6px" onclick="saveDocs()">Guardar</button>
+    </div>
+
+    <div class="doc-card">
+      <h3>📝 Notas generales</h3>
+      <div class="doc-field">
+        <textarea id="doc-notes" style="min-height:120px" placeholder="Números útiles, direcciones, notas de visas..."></textarea>
+      </div>
+      <button class="doc-save-btn" onclick="saveDocs()">Guardar</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL: DAY EDIT
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="dayOverlay">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('dayOverlay')">✕</button>
+    <h3 id="modalTitle">Editar día</h3>
+
+    <label>Ciudad</label>
+    <select id="dayCity"></select>
+
+    <hr class="section-sep">
+    <label>Medio de transporte</label>
+    <div id="transportList"></div>
+    <button id="addTransportBtn" onclick="addTransportField()">+ Transporte</button>
+
+    <hr class="section-sep">
+    <label>Alojamiento</label>
+    <input type="text" id="hotelName" placeholder="ej. Hotel Marriott Barcelona">
+    <label style="margin-top:8px">Check-in (fecha inicio estadía)</label>
+    <div class="hotel-range-row">
+      <div><div class="t-sub">Desde</div><input type="date" id="hotelFrom"></div>
+      <div><div class="t-sub">Hasta</div><input type="date" id="hotelTo"></div>
+    </div>
+    <label style="margin-top:8px">Google Maps (opcional)</label>
+    <input type="url" id="hotelMap" placeholder="https://maps.google.com/...">
+
+    <hr class="section-sep">
+    <label>Presupuesto del día</label>
+    <div class="budget-row">
+      <div><div class="t-sub">Estimado (€/$)</div><input type="number" id="budgetEst" min="0" placeholder="0"></div>
+      <div><div class="t-sub">Real gastado</div><input type="number" id="budgetReal" min="0" placeholder="0"></div>
+    </div>
+
+    <hr class="section-sep">
+    <label>Actividades del día</label>
+    <div id="actList"></div>
+    <button id="addActBtn" onclick="addActivityField()">+ Actividad</button>
+
+    <label style="margin-top:14px">Notas</label>
+    <textarea id="dayNotes" placeholder="Notas libres..."></textarea>
+
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="clearDay()">Limpiar</button>
+      <button class="btn btn-ghost" onclick="closeModal('dayOverlay')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDay()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CITY MANAGER -->
+<div class="overlay" id="cityOverlay">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('cityOverlay')">✕</button>
+    <h3>🏙 Ciudades del viaje</h3>
+    <div id="cityRows"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('cityOverlay')">Cerrar</button>
+      <button class="btn btn-primary" onclick="saveCities()">Guardar y seguir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD WISH ITEM -->
+<div class="overlay" id="wishOverlay">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('wishOverlay')">✕</button>
+    <h3 id="wishModalTitle">➕ Agregar a wishlist</h3>
+
+    <label>Ciudad</label>
+    <select id="wishCity"></select>
+
+    <label>Tipo</label>
+    <div class="wish-type-grid" id="wishTypeGrid">
+      <button class="wish-type-btn" data-type="actividad" onclick="selWishType(this)">🎯 Actividad</button>
+      <button class="wish-type-btn" data-type="lugar" onclick="selWishType(this)">📍 Lugar</button>
+      <button class="wish-type-btn" data-type="restaurante" onclick="selWishType(this)">🍽 Restaurante</button>
+      <button class="wish-type-btn" data-type="compra" onclick="selWishType(this)">🛍 Compra</button>
+      <button class="wish-type-btn" data-type="otro" onclick="selWishType(this)">📌 Otro</button>
+    </div>
+
+    <label>Nombre</label>
+    <input type="text" id="wishName" placeholder="ej. Sagrada Familia">
+
+    <label>Nota (opcional)</label>
+    <input type="text" id="wishNote" placeholder="ej. Reservar con anticipación">
+
+    <label>Link (opcional — Maps, web, etc.)</label>
+    <input type="url" id="wishLink" placeholder="https://...">
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('wishOverlay')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveWishItem()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── CONSTANTS ────────────────────────────────────────────
+const CITY_CLASSES = ['city-1','city-2','city-3','city-4','city-5','city-6','city-7','city-8'];
+const SWATCH_COLORS= ['#BFDBFE','#6EE7B7','#FDE68A','#FBCFE8','#DDD6FE','#FECACA','#BAE6FD','#A7F3D0'];
+const TRANSPORT_MODES = [
+  {v:'avion',l:'✈️ Avión'},{v:'auto',l:'🚗 Auto'},{v:'tren',l:'🚆 Tren'},
+  {v:'barco',l:'🚢 Barco'},{v:'bus',l:'🚌 Bus'},{v:'taxi',l:'🚕 Taxi'},
+  {v:'metro',l:'🚇 Metro'},{v:'bici',l:'🚲 Bici'},{v:'pie',l:'🚶 A pie'},
+];
+const TICON = {avion:'✈️',auto:'🚗',tren:'🚆',barco:'🚢',bus:'🚌',taxi:'🚕',metro:'🚇',bici:'🚲',pie:'🚶'};
+const WISH_LABELS = {actividad:'🎯 Actividad',lugar:'📍 Lugar',restaurante:'🍽 Restaurante',compra:'🛍 Compra',otro:'📌 Otro'};
+const STORAGE_KEY = 'travel_planner_v2';
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// ── STATE ────────────────────────────────────────────────
+let cities  = []; // [{name,cls}]
+let days    = {}; // {dateStr: {city,transports,hotelName,hotelFrom,hotelTo,hotelMap,budgetEst,budgetReal,activities,notes}}
+let wishlist= []; // [{id,city,type,name,note,link,done}]
+let docs    = {}; // flat key→value
+let editingDate = null;
+let editingWishId = null;
+let wishTypeSelected = '';
+
+// ── PERSIST ──────────────────────────────────────────────
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({cities,days,wishlist,docs}));
+}
+function load() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  // try to migrate old key
+  const old = !raw && localStorage.getItem('travel_cal_v1');
+  const src  = raw || old;
+  if (!src) return;
+  const d = JSON.parse(src);
+  cities   = d.cities   || [];
+  days     = d.days     || {};
+  wishlist = d.wishlist || [];
+  docs     = d.docs     || {};
+}
+
+// ── UTILS ────────────────────────────────────────────────
+function pad(n){ return String(n).padStart(2,'0'); }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── TABS ─────────────────────────────────────────────────
+function switchTab(id) {
+  ['tabCalendar','tabWishlist','tabDocs','tabTransport'].forEach(t => {
+    document.getElementById(t).style.display = t===id ? '' : 'none';
+    document.getElementById('btn-'+t).classList.toggle('active', t===id);
+  });
+  if (id==='tabWishlist')  renderWishlist();
+  if (id==='tabDocs')      loadDocsUI();
+  if (id==='tabTransport') renderTpSummary();
+}
+
+// ── CALENDAR BUILD ───────────────────────────────────────
+function resolvedHotel(dateStr) {
+  // find a hotel that has a range covering dateStr
+  for (const [ds, data] of Object.entries(days)) {
+    if (data.hotelName && data.hotelFrom && data.hotelTo) {
+      if (dateStr >= data.hotelFrom && dateStr <= data.hotelTo) {
+        return {name: data.hotelName, map: data.hotelMap};
+      }
+    }
+  }
+  // fallback: hotel on exact day without range
+  const d = days[dateStr] || {};
+  if (d.hotelName) return {name: d.hotelName, map: d.hotelMap};
+  return null;
+}
+
+function buildMonth(year, month, gridId) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  const firstDay   = new Date(year, month-1, 1).getDay();
+  const totalDays  = new Date(year, month, 0).getDate();
+  const offset     = firstDay === 0 ? 6 : firstDay-1;
+  const today      = new Date();
+  const todayStr   = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+
+  for (let i=0; i<offset; i++) {
+    const e = document.createElement('div'); e.className='day empty'; grid.appendChild(e);
+  }
+
+  for (let d=1; d<=totalDays; d++) {
+    const ds   = `${year}-${pad(month)}-${pad(d)}`;
+    const data = days[ds] || {};
+    const city = cities.find(c=>c.name===data.city);
+    const cls  = city ? city.cls : 'city-none';
+
+    const cell = document.createElement('div');
+    cell.className = `day ${cls}${ds===todayStr?' today':''}${city?' has-city':''}`;
+    cell.dataset.date = ds;
+    cell.onclick = ()=>openDayModal(ds);
+
+    // day number
+    const num = document.createElement('div');
+    num.className='day-num'; num.textContent=d; cell.appendChild(num);
+
+    // city label
+    const cl = document.createElement('div');
+    cl.className='city-lbl'; cl.textContent=data.city||''; cell.appendChild(cl);
+
+    // transport tags
+    (data.transports||[]).forEach(t=>{
+      const tag=document.createElement('div'); tag.className='transport-tag';
+      let txt=TICON[t.mode]||'🚀';
+      if(t.dep) txt+=` ${t.dep}`;
+      if(t.arr) txt+=` → ${t.arr}`;
+      if(t.ref) txt+=` ${t.ref}`;
+      tag.textContent=txt; cell.appendChild(tag);
+    });
+
+    // hotel (from range or direct)
+    const hotel = resolvedHotel(ds);
+    if (hotel) {
+      const ht = document.createElement(hotel.map?'a':'div');
+      ht.className='hotel-tag'; ht.textContent=`🏨 ${hotel.name}`;
+      if(hotel.map){ ht.href=hotel.map; ht.target='_blank'; ht.rel='noopener'; ht.onclick=e=>e.stopPropagation(); }
+      cell.appendChild(ht);
+    }
+
+    // activities
+    const acts = data.activities||[];
+    if(acts.length){
+      const ac=document.createElement('div'); ac.className='activities';
+      acts.slice(0,3).forEach(a=>{
+        const ai=document.createElement('div'); ai.className='activity-item'; ai.textContent=a; ac.appendChild(ai);
+      });
+      if(acts.length>3){ const mb=document.createElement('div'); mb.className='more-badge'; mb.textContent=`+${acts.length-3} más`; ac.appendChild(mb); }
+      cell.appendChild(ac);
+    }
+
+    // budget tag
+    if(data.budgetEst||data.budgetReal){
+      const bt=document.createElement('div'); bt.className='budget-tag';
+      if(data.budgetEst)  bt.innerHTML+=`<span class="est">est: ${data.budgetEst}</span>`;
+      if(data.budgetReal) bt.innerHTML+=`<span class="real">✓ ${data.budgetReal}</span>`;
+      cell.appendChild(bt);
+    }
+
+    grid.appendChild(cell);
+  }
+}
+
+function rebuildCalendars(){
+  buildMonth(2026,8,'grid-aug');
+  buildMonth(2026,9,'grid-sep');
+  renderBudgetBar();
+}
+
+// ── BUDGET BAR ───────────────────────────────────────────
+function renderBudgetBar(){
+  const bar = document.getElementById('budgetBar');
+  let totalEst=0, totalReal=0;
+  Object.values(days).forEach(d=>{ totalEst+=parseFloat(d.budgetEst)||0; totalReal+=parseFloat(d.budgetReal)||0; });
+  const pct = totalEst>0 ? Math.min(100,Math.round(totalReal/totalEst*100)) : 0;
+  bar.innerHTML = `
+    <h2>Presupuesto del viaje</h2>
+    <div class="budget-stat"><div class="val">€${totalEst.toFixed(0)}</div><div class="lbl">Estimado total</div></div>
+    <div class="budget-stat"><div class="val" style="color:${totalReal>totalEst?'#e55353':'var(--teal)'}">€${totalReal.toFixed(0)}</div><div class="lbl">Gastado</div></div>
+    <div class="budget-stat"><div class="val" style="color:var(--muted)">€${Math.max(0,totalEst-totalReal).toFixed(0)}</div><div class="lbl">Restante</div></div>
+    <div class="budget-track">
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:2px">${pct}% ejecutado</div>
+      <div class="budget-track-bar"><div class="budget-track-fill" style="width:${pct}%"></div></div>
+    </div>`;
+}
+
+// ── LEGEND ───────────────────────────────────────────────
+function rebuildLegend(){
+  const c=document.getElementById('legendChips'); c.innerHTML='';
+  cities.forEach(ci=>{
+    const chip=document.createElement('div');
+    chip.className=`legend-chip ${ci.cls}`;
+    chip.innerHTML=`<span class="dot"></span>${ci.name}`;
+    c.appendChild(chip);
+  });
+  rebuildCitySelects();
+}
+function rebuildCitySelects(){
+  ['dayCity','wishCity'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel) return;
+    sel.innerHTML='<option value="">— Sin ciudad —</option>';
+    cities.forEach(c=>{ const o=document.createElement('option'); o.value=c.name; o.textContent=c.name; sel.appendChild(o); });
+  });
+}
+
+// ── DAY MODAL ────────────────────────────────────────────
+function openDayModal(ds){
+  editingDate=ds;
+  const data=days[ds]||{};
+  const [y,m,d]=ds.split('-');
+  document.getElementById('modalTitle').textContent=`${parseInt(d)} de ${MONTHS_ES[parseInt(m)-1]} ${y}`;
+  rebuildCitySelects();
+  document.getElementById('dayCity').value    = data.city      ||'';
+  document.getElementById('hotelName').value  = data.hotelName ||'';
+  document.getElementById('hotelFrom').value  = data.hotelFrom ||ds;
+  document.getElementById('hotelTo').value    = data.hotelTo   ||ds;
+  document.getElementById('hotelMap').value   = data.hotelMap  ||'';
+  document.getElementById('budgetEst').value  = data.budgetEst ||'';
+  document.getElementById('budgetReal').value = data.budgetReal||'';
+  document.getElementById('dayNotes').value   = data.notes     ||'';
+
+  const tl=document.getElementById('transportList'); tl.innerHTML='';
+  (data.transports||[]).forEach(t=>addTransportField(t));
+
+  const al=document.getElementById('actList'); al.innerHTML='';
+  (data.activities||[]).forEach(a=>addActivityField(a));
+
+  document.getElementById('dayOverlay').classList.add('open');
+}
+
+function addTransportField(t={}){
+  const list=document.getElementById('transportList');
+  const entry=document.createElement('div'); entry.className='transport-entry';
+  const opts=TRANSPORT_MODES.map(m=>`<option value="${m.v}"${t.mode===m.v?' selected':''}>${m.l}</option>`).join('');
+  entry.innerHTML=`
+    <button class="del-transport" onclick="this.parentElement.remove()">✕</button>
+    <div class="t-row">
+      <div class="t-mode">
+        <div class="t-sub">Medio</div>
+        <select class="mode-sel" style="width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.83rem">
+          <option value="">— Medio —</option>${opts}
+        </select>
+      </div>
+      <div><div class="t-sub">Salida</div><input type="time" class="t-dep" value="${t.dep||''}" style="width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.83rem"></div>
+      <div><div class="t-sub">Llegada</div><input type="time" class="t-arr" value="${t.arr||''}" style="width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.83rem"></div>
+    </div>
+    <div class="pnr-row">
+      <input type="text" class="t-ref" placeholder="N° vuelo / localizador / referencia" value="${(t.ref||'').replace(/"/g,'&quot;')}" style="border:1.5px solid var(--border);border-radius:6px;font-size:.8rem">
+      <button class="pnr-copy" onclick="copyPNR(this)">📋 Copiar</button>
+    </div>`;
+  list.appendChild(entry);
+}
+
+function copyPNR(btn){
+  const val=btn.previousElementSibling.value.trim();
+  if(!val){ toast('No hay referencia para copiar'); return; }
+  navigator.clipboard.writeText(val).then(()=>toast(`✅ Copiado: ${val}`));
+}
+
+function addActivityField(val=''){
+  const al=document.getElementById('actList');
+  const row=document.createElement('div'); row.className='act-row';
+  row.innerHTML=`<input type="text" placeholder="ej. Tour por el centro histórico" value="${val.replace(/"/g,'&quot;')}"><button class="del-act" onclick="this.parentElement.remove()">✕</button>`;
+  al.appendChild(row);
+}
+
+function saveDay(){
+  const city        = document.getElementById('dayCity').value;
+  const hotelName   = document.getElementById('hotelName').value.trim();
+  const hotelFrom   = document.getElementById('hotelFrom').value;
+  const hotelTo     = document.getElementById('hotelTo').value;
+  const hotelMap    = document.getElementById('hotelMap').value.trim();
+  const budgetEst   = document.getElementById('budgetEst').value;
+  const budgetReal  = document.getElementById('budgetReal').value;
+  const notes       = document.getElementById('dayNotes').value.trim();
+  const activities  = Array.from(document.querySelectorAll('#actList .act-row input')).map(i=>i.value.trim()).filter(Boolean);
+  const transports  = Array.from(document.querySelectorAll('.transport-entry')).map(e=>({
+    mode: e.querySelector('.mode-sel').value,
+    dep:  e.querySelector('.t-dep').value,
+    arr:  e.querySelector('.t-arr').value,
+    ref:  e.querySelector('.t-ref').value.trim(),
+  })).filter(t=>t.mode);
+
+  days[editingDate]={city,transports,hotelName,hotelFrom,hotelTo,hotelMap,budgetEst,budgetReal,activities,notes};
+  save(); closeModal('dayOverlay'); rebuildCalendars();
+}
+
+function clearDay(){
+  delete days[editingDate];
+  save(); closeModal('dayOverlay'); rebuildCalendars();
+}
+
+// ── CITY MANAGER ─────────────────────────────────────────
+function openCityManager(){
+  const rows=document.getElementById('cityRows'); rows.innerHTML='';
+  cities.forEach((c,i)=>{
+    const row=document.createElement('div'); row.className='city-mgr-row';
+    row.innerHTML=`<div class="city-swatch" style="background:${SWATCH_COLORS[i%SWATCH_COLORS.length]}"></div>
+      <input type="text" value="${c.name}" data-idx="${i}">
+      <button class="del-city" onclick="deleteCityRow(${i})">✕</button>`;
+    rows.appendChild(row);
+  });
+  if(cities.length<8){
+    const row=document.createElement('div'); row.className='city-mgr-row';
+    const ni=cities.length;
+    row.innerHTML=`<div class="city-swatch" style="background:${SWATCH_COLORS[ni%SWATCH_COLORS.length]}"></div>
+      <input type="text" placeholder="Nueva ciudad...">`;
+    rows.appendChild(row);
+  }
+  document.getElementById('cityOverlay').classList.add('open');
+}
+function deleteCityRow(idx){
+  const name=cities[idx].name;
+  Object.keys(days).forEach(d=>{ if(days[d].city===name) days[d].city=''; });
+  cities.splice(idx,1);
+  cities=cities.map((c,i)=>({name:c.name,cls:CITY_CLASSES[i]}));
+  save(); openCityManager(); rebuildLegend(); rebuildCalendars();
+}
+function saveCities(){
+  const inputs=document.querySelectorAll('#cityRows input[type=text]');
+  const nc=[];
+  inputs.forEach((inp,i)=>{ const n=inp.value.trim(); if(n) nc.push({name:n,cls:CITY_CLASSES[i%CITY_CLASSES.length]}); });
+  cities=nc; save(); openCityManager(); rebuildLegend(); rebuildCalendars();
+}
+
+// ── WISHLIST DATA (pre-loaded from La Puglia 2026.docx) ──────────
+const PUGLIA_DATA = {
+  'Bari': {
+    emoji:'🏛', sub:'Capital de Puglia — ciudad vieja y puerto',
+    color:['#DBEAFE','#1d4ed8'],
+    ver:[
+      {n:'Bari Vecchia — casco histórico medieval',map:'https://maps.google.com/?q=Bari+Vecchia,+Bari,+Italy'},
+      {n:'Basílica de San Nicolás — reliquias, cripta gratuita',map:'https://maps.google.com/?q=Basilica+di+San+Nicola,+Bari'},
+      {n:'Catedral de Bari (San Sabino) — cripta €3',map:'https://maps.google.com/?q=Cattedrale+di+Bari'},
+      {n:'Castello Normanno-Svevo — €7',map:'https://maps.google.com/?q=Castello+Svevo+di+Bari'},
+      {n:'Lungomare Nazario Sauro — paseo marítimo',map:'https://maps.google.com/?q=Lungomare+Nazario+Sauro,+Bari'},
+      {n:'Piazza del Ferrarese — ex mercado de pescado, Sala Murat',map:'https://maps.google.com/?q=Piazza+del+Ferrarese,+Bari'},
+    ],
+    comer:[
+      {n:'Panificio Fiore — focaccia barese (€9/kg)', note:'Tomates y aceitunas, esponjosa — la más famosa de Bari',map:'https://maps.google.com/?q=Panificio+Fiore+Bari'},
+      {n:'Mastro Ciccio — bocata de pulpo €10',map:'https://maps.google.com/?q=Mastro+Ciccio+Bari'},
+      {n:'La Uascezze — tabla de quesos y orecchiette',map:'https://maps.google.com/?q=La+Uascezze+Bari'},
+      {n:'La Cantina dello Zio — orecchiette con frutti di mare',map:'https://maps.google.com/?q=La+Cantina+dello+Zio+Bari'},
+      {n:'El Pedro — platos desde €5, cocina típica',map:'https://maps.google.com/?q=El+Pedro+Bari'},
+      {n:'Gelateria Gentile — heladería histórica',map:'https://maps.google.com/?q=Gelateria+Gentile+Bari'},
+    ],
+    playas:[
+      {n:'Lido Sabbiadoro — el más famoso, reservar', note:'Monopoli, a 40 min de Bari',map:'https://maps.google.com/?q=Lido+Sabbiadoro+Monopoli'},
+      {n:'Lido Coccaro (Fasano) — exclusivo, pequeña bahía protegida',map:'https://maps.google.com/?q=Lido+Coccaro+Fasano'},
+      {n:'Lido Maremosso — más económico y tranquilo',map:'https://maps.google.com/?q=Lido+Maremosso+Monopoli'},
+    ]
+  },
+  'Polignano a Mare': {
+    emoji:'🌊', sub:'Pueblo sobre acantilados — el más fotogénico de Puglia',
+    color:['#D1FAE5','#065f46'],
+    ver:[
+      {n:'Casco histórico y miradores sobre el Adriático',map:'https://maps.google.com/?q=Polignano+a+Mare,+Italy'},
+      {n:'Terraza Merlate — mejores vistas del pueblo',map:'https://maps.google.com/?q=Terrazza+Merlate+Polignano+a+Mare'},
+      {n:'Monumento a Domenico Modugno (creador de Volare)',map:'https://maps.google.com/?q=Monumento+Domenico+Modugno+Polignano'},
+      {n:'Piazza San Benedetto — corazón del centro histórico',map:'https://maps.google.com/?q=Piazza+San+Benedetto+Polignano+a+Mare'},
+      {n:'Tour en barco por las 70+ cuevas marinas (~€15)', note:'Grotta Azzurra y Grotta di San Lorenzo son las mejores',map:'https://maps.google.com/?q=Polignano+a+Mare+boat+tour+grotte'},
+    ],
+    comer:[
+      {n:'Grotta Palazzese — restaurante dentro de una cueva marina', note:'Uno de los más exclusivos del mundo — reservar con MESES de anticipación',map:'https://maps.google.com/?q=Grotta+Palazzese+Polignano+a+Mare'},
+      {n:'Braceria dello Sport — carne a la brasa',map:'https://maps.google.com/?q=Braceria+dello+Sport+Polignano'},
+      {n:'Martinucci Laboratory — pasticciotti (tartaletas de crema)',map:'https://maps.google.com/?q=Martinucci+Polignano+a+Mare'},
+    ],
+    playas:[
+      {n:'Lama Monachile / Cala Ponte — playa de sassi bajo acantilados',map:'https://maps.google.com/?q=Lama+Monachile+Polignano+a+Mare'},
+      {n:'Cala Paura',map:'https://maps.google.com/?q=Cala+Paura+Polignano+a+Mare'},
+      {n:'Porto Cavallo',map:'https://maps.google.com/?q=Porto+Cavallo+Polignano+a+Mare'},
+      {n:'Calas de Copacabana (Le Scalette / I Tre Buchi / Cala principal)',map:'https://maps.google.com/?q=Cala+Copacabana+Polignano+a+Mare'},
+    ]
+  },
+  'Alberobello': {
+    emoji:'🍄', sub:'Patrimonio UNESCO — los famosos trulli',
+    color:['#FEF3C7','#92400e'],
+    ver:[
+      {n:'Rione Monti — zona de trulli más fotogénica',map:'https://maps.google.com/?q=Rione+Monti+Alberobello'},
+      {n:'Aia Piccola — sector más auténtico y menos turístico',map:'https://maps.google.com/?q=Aia+Piccola+Alberobello'},
+      {n:'Trullo Sovrano — único trullo de dos pisos, visitable',map:'https://maps.google.com/?q=Trullo+Sovrano+Alberobello'},
+      {n:'Trullos de Via Monte Pertica — con símbolos dibujados',map:'https://maps.google.com/?q=Via+Monte+Pertica+Alberobello'},
+      {n:'Mirador de Santa Lucía al atardecer', note:'Subir por la Escalera del amor',map:'https://maps.google.com/?q=Belvedere+Santa+Lucia+Alberobello'},
+      {n:'Basilica dei Santi Medici Cosma e Damiano',map:'https://maps.google.com/?q=Basilica+Santi+Cosma+e+Damiano+Alberobello'},
+    ],
+    comer:[
+      {n:'Tiendas artesanales dentro de los trulli', note:'Cerámica, limoncello, productos locales',map:'https://maps.google.com/?q=Alberobello+negozi+artigianato'},
+      {n:'Largo Martellotta — terracitas con vista a los trulli',map:'https://maps.google.com/?q=Largo+Martellotta+Alberobello'},
+    ],
+    playas:[]
+  },
+  'Ostuni': {
+    emoji:'🤍', sub:'La Ciudad Blanca — olivos y casco medieval',
+    color:['#EDE9FE','#5b21b6'],
+    ver:[
+      {n:'Casco histórico blanco — callejuelas encaladas',map:'https://maps.google.com/?q=Ostuni+centro+storico'},
+      {n:'Catedral de Ostuni — vista panorámica sobre el valle de olivos',map:'https://maps.google.com/?q=Cattedrale+di+Ostuni'},
+      {n:'Parque Arqueológico Natural Santa Maria di Agnano',map:'https://maps.google.com/?q=Parco+Archaeologico+Santa+Maria+di+Agnano+Ostuni'},
+      {n:'Parque Dunas Costeras — 1100 hectáreas, naturaleza intacta',map:'https://maps.google.com/?q=Parco+Naturale+Dune+Costiere+Ostuni'},
+    ],
+    comer:[
+      {n:'Osteria del Tempo Perso — cocina local en cueva', note:'Ambiente muy acogedor, muy recomendado',map:'https://maps.google.com/?q=Osteria+del+Tempo+Perso+Ostuni'},
+      {n:'La Taverna della Gelosia — pasta y vinos locales',map:'https://maps.google.com/?q=La+Taverna+della+Gelosia+Ostuni'},
+      {n:'Cibus — opción más contemporánea',map:'https://maps.google.com/?q=Cibus+Ostuni'},
+    ],
+    playas:[
+      {n:'Torre Guaceto — reserva natural, playas protegidas',map:'https://maps.google.com/?q=Torre+Guaceto+Ostuni'},
+      {n:'Villanova — playas a 20-30 min del centro',map:'https://maps.google.com/?q=Villanova+beach+Ostuni'},
+    ]
+  },
+  'Lecce': {
+    emoji:'✨', sub:'La Florencia del sur — barroco leccese en cada esquina',
+    color:['#FCE7F3','#9d174d'],
+    ver:[
+      {n:'Basílica Santa Croce — lo mejor del barroco leccese, ticket €6',map:'https://maps.google.com/?q=Basilica+di+Santa+Croce+Lecce'},
+      {n:'Piazza del Duomo — catedral + episcopado + campanile',map:'https://maps.google.com/?q=Piazza+del+Duomo+Lecce'},
+      {n:'Anfiteatro Romano y Piazza Sant\'Oronzo',map:'https://maps.google.com/?q=Anfiteatro+Romano+Lecce'},
+      {n:'Arco di Trionfo / Porta Napoli — 1548, en honor de Carlos V',map:'https://maps.google.com/?q=Arco+di+Trionfo+Lecce'},
+      {n:'Via Trinchese — calle comercial elegante, cafés y pastelerías',map:'https://maps.google.com/?q=Via+Trinchese+Lecce'},
+      {n:'Teatro Romano — siglo I a.C., muy bien conservado',map:'https://maps.google.com/?q=Teatro+Romano+Lecce'},
+    ],
+    comer:[
+      {n:'Caffè Alvino — pasticciotto leccese y caffè in ghiaccio', note:'La pastelería histórica de Lecce en Piazza Sant\'Oronzo',map:'https://maps.google.com/?q=Caffe+Alvino+Lecce'},
+      {n:'Alle Due Corti — cocina tradicional leccese en palacio histórico',map:'https://maps.google.com/?q=Alle+Due+Corti+Lecce'},
+      {n:'Le Zie Trattoria — cocina casera, precios razonables',map:'https://maps.google.com/?q=Le+Zie+Trattoria+Lecce'},
+      {n:'400 Gradi — considerada la mejor pizza de Puglia',map:'https://maps.google.com/?q=400+Gradi+Lecce'},
+    ],
+    playas:[]
+  },
+  'Trani': {
+    emoji:'⛪', sub:'Catedral junto al mar — la más bella románica de Italia',
+    color:['#E0F2FE','#075985'],
+    ver:[
+      {n:'Cattedrale di San Nicola Pellegrino — directa sobre el Adriático (1159)',map:'https://maps.google.com/?q=Cattedrale+di+Trani'},
+      {n:'Castello Svevo — Federico II, 1233, planta cuadrangular',map:'https://maps.google.com/?q=Castello+Svevo+Trani'},
+      {n:'Barrio Judío y Sinagoga Scolanova', note:'Mayor comunidad judía medieval del sur de Italia',map:'https://maps.google.com/?q=Sinagoga+Scolanova+Trani'},
+      {n:'Porto Vecchio y Lungomare — atardecer imperdible',map:'https://maps.google.com/?q=Porto+Vecchio+Trani'},
+    ],
+    comer:[
+      {n:'Le Lampare al Fortino — mariscos con vista directa a la catedral',map:'https://maps.google.com/?q=Le+Lampare+al+Fortino+Trani'},
+      {n:'Osteria Frangipane — cocina pugliese, ~€35-40/persona',map:'https://maps.google.com/?q=Osteria+Frangipane+Trani'},
+      {n:'Quintessenza — estrella Michelin, cocina de autor local',map:'https://maps.google.com/?q=Quintessenza+Trani'},
+    ],
+    playas:[]
+  },
+  'Otranto': {
+    emoji:'🔵', sub:'El extremo oriental de Italia — aguas turquesas',
+    color:['#ECFDF5','#047857'],
+    ver:[
+      {n:'Catedral y Mosaico del Árbol de la Vida — siglo XI',map:'https://maps.google.com/?q=Cattedrale+di+Otranto'},
+      {n:'Castello Aragonese — 1485, diseño pentagonal',map:'https://maps.google.com/?q=Castello+Aragonese+Otranto'},
+      {n:'Basílica de San Pietro — frescos bizantinos del siglo XI',map:'https://maps.google.com/?q=Basilica+di+San+Pietro+Otranto'},
+      {n:'Murallas aragonesas — recorrer a pie todo el perímetro',map:'https://maps.google.com/?q=Mura+Aragonesi+Otranto'},
+    ],
+    comer:[
+      {n:'Sofish — street food de pescado fresco, barato y riquísimo',map:'https://maps.google.com/?q=Sofish+Otranto'},
+      {n:'Retro Gusto — Guía Michelin, cocina salentina creativa', note:'Reservar en verano, imprescindible',map:'https://maps.google.com/?q=Retro+Gusto+Otranto'},
+      {n:'Peccato di Vino — cocina pugliesa y buena carta de vinos locales',map:'https://maps.google.com/?q=Peccato+di+Vino+Otranto'},
+    ],
+    playas:[
+      {n:'Baia dei Turchi — la más famosa, a 8km al norte', note:'Agua turquesa, arena blanca, reserva natural',map:'https://maps.google.com/?q=Baia+dei+Turchi+Otranto'},
+    ]
+  },
+  'Gallipoli': {
+    emoji:'🏝', sub:'Isla medieval en el Mar Jónico',
+    color:['#FEE2E2','#991b1b'],
+    ver:[
+      {n:'Casco Histórico en isla (Isola Vecchia) — laberinto de callejuelas blancas',map:'https://maps.google.com/?q=Centro+Storico+Gallipoli'},
+      {n:'Castillo Angevino de Gallipoli',map:'https://maps.google.com/?q=Castello+Angioino+Gallipoli'},
+      {n:'Catedral Barroca de Sant\'Agata',map:'https://maps.google.com/?q=Cattedrale+Sant+Agata+Gallipoli'},
+    ],
+    comer:[
+      {n:'Mamangi — gambero viola (gamba violeta típica del Jónico)',map:'https://maps.google.com/?q=Mamangi+Gallipoli'},
+      {n:'Al Pescatore — marisquería clásica en el puerto',map:'https://maps.google.com/?q=Al+Pescatore+Gallipoli'},
+      {n:'Osteria del Tempo Perso — precios razonables, buen ambiente',map:'https://maps.google.com/?q=Osteria+del+Tempo+Perso+Gallipoli'},
+    ],
+    playas:[
+      {n:'Spiaggia della Purità — dentro del casco histórico',map:'https://maps.google.com/?q=Spiaggia+della+Purita+Gallipoli'},
+      {n:'Baia Verde — la más extensa, 4km al sur',map:'https://maps.google.com/?q=Baia+Verde+Gallipoli'},
+      {n:'Punta della Suina — reserva natural, agua cristalina',map:'https://maps.google.com/?q=Punta+della+Suina+Gallipoli'},
+    ]
+  },
+  'Vieste': {
+    emoji:'🪨', sub:'Promontorio del Gargano — cuevas y acantilados',
+    color:['#DBEAFE','#1d4ed8'],
+    ver:[
+      {n:'Casco histórico — callejuelas blancas trepando al promontorio',map:'https://maps.google.com/?q=Vieste+centro+storico'},
+      {n:'Pizzomunno — monolito blanco de 25m emergiendo del mar',map:'https://maps.google.com/?q=Pizzomunno+Vieste'},
+      {n:'Foresta Umbra — bosque de hayas, corazón del Parque Nacional del Gargano',map:'https://maps.google.com/?q=Foresta+Umbra+Gargano'},
+      {n:'Tour en barco por las grutas marinas del Gargano',map:'https://maps.google.com/?q=Vieste+boat+tour+grotte+Gargano'},
+    ],
+    comer:[
+      {n:'Ristorante Due Vele — pescado fresco y pasta con marisco frente al mar',map:'https://maps.google.com/?q=Due+Vele+Vieste'},
+      {n:'Il Fornaio — pizza y cocina local, muy valorada por locales',map:'https://maps.google.com/?q=Il+Fornaio+Vieste'},
+    ],
+    playas:[
+      {n:'Spiaggia del Castello — bajo el castillo, aguas cristalinas',map:'https://maps.google.com/?q=Spiaggia+del+Castello+Vieste'},
+      {n:'Baia di Campi — una de las más bellas de Italia', note:'A 10km al sur, agua azul-esmeralda',map:'https://maps.google.com/?q=Baia+di+Campi+Vieste'},
+    ]
+  },
+  'Matera': {
+    emoji:'🏺', sub:'Patrimonio UNESCO — los Sassi, ciudad de cuevas milenarias',
+    color:['#FEF3C7','#92400e'],
+    ver:[
+      {n:'Sasso Caveoso y Sasso Barisano — los dos barrios de cuevas',map:'https://maps.google.com/?q=Sassi+di+Matera'},
+      {n:'Duomo de Matera — siglo XIII, románico-pugliese',map:'https://maps.google.com/?q=Duomo+di+Matera'},
+      {n:'Piazza Vittorio Veneto — conectada a los Sassi por escalinatas',map:'https://maps.google.com/?q=Piazza+Vittorio+Veneto+Matera'},
+      {n:'Casa Grotta di Vico Solitario — casa-cueva reconstruida como en los años 50',map:'https://maps.google.com/?q=Casa+Grotta+di+Vico+Solitario+Matera'},
+      {n:'Cripta del Peccato Originale (a 15km)', note:'La Capilla Sixtina de la pintura rupestre — frescos del siglo VIII',map:'https://maps.google.com/?q=Cripta+del+Peccato+Originale+Matera'},
+    ],
+    comer:[
+      {n:'Baccanti — cocina lucana contemporánea en cueva, precios razonables',map:'https://maps.google.com/?q=Baccanti+Matera'},
+      {n:'Trattoria del Caveoso — cocina casera en los Sassi, muy auténtica',map:'https://maps.google.com/?q=Trattoria+del+Caveoso+Matera'},
+      {n:'Vitantonio Lombardo — estrella Michelin, para una ocasión especial',map:'https://maps.google.com/?q=Vitantonio+Lombardo+Matera'},
+    ],
+    playas:[]
+  },
+  'Santa Maria di Leuca': {
+    emoji:'💙', sub:'El fin de Italia — donde el Adriático se encuentra con el Jónico',
+    color:['#D1FAE5','#065f46'],
+    ver:[
+      {n:'Faro di Leuca — 47m, desde aquí se ven los dos mares',map:'https://maps.google.com/?q=Faro+di+Leuca'},
+      {n:'Cascata Monumentale — escalinata con cascada artificial hasta el puerto',map:'https://maps.google.com/?q=Cascata+Monumentale+Santa+Maria+di+Leuca'},
+      {n:'Santuario di Santa Maria de Finibus Terrae — sobre el promontorio',map:'https://maps.google.com/?q=Santuario+Santa+Maria+de+Finibus+Terrae+Leuca'},
+      {n:'Villas Belle Époque en el lungomare',map:'https://maps.google.com/?q=Villa+Meridiana+Santa+Maria+di+Leuca'},
+      {n:'Tour en barco por las 20+ grutas marinas de la costa',map:'https://maps.google.com/?q=Santa+Maria+di+Leuca+boat+tour+grotte'},
+    ],
+    comer:[],
+    playas:[
+      {n:'Spiaggia di Leuca — al pie del faro',map:'https://maps.google.com/?q=Spiaggia+Santa+Maria+di+Leuca'},
+    ]
+  },
+  'Roma': {
+    emoji:'🏛', sub:'La Ciudad Eterna — historia, arte y gastronomía',
+    color:['#7c3aed','#a78bfa'],
+    ver:[], comer:[], playas:[]
+  },
+  'Nápoles': {
+    emoji:'🌋', sub:'Ciudad vibrante al pie del Vesubio',
+    color:['#b45309','#f59e0b'],
+    ver:[
+      {n:'Centro Storico — Patrimonio UNESCO, calles medievales',map:'https://maps.google.com/?q=Centro+Storico+Napoli'},
+      {n:'Castel dell\'Ovo — castillo sobre el mar',map:'https://maps.google.com/?q=Castel+dell+Ovo+Napoli'},
+      {n:'Museo Arqueológico Nacional — colección de Pompeya',map:'https://maps.google.com/?q=Museo+Archeologico+Nazionale+Napoli'},
+      {n:'Spaccanapoli — la calle que parte la ciudad en dos',map:'https://maps.google.com/?q=Spaccanapoli+Napoli'},
+      {n:'Capodimonte — museo y parque con vista al Golfo',map:'https://maps.google.com/?q=Museo+di+Capodimonte+Napoli'},
+    ],
+    comer:[
+      {n:'Pizzeria Brandi — donde nació la pizza Margherita (1889)',map:'https://maps.google.com/?q=Pizzeria+Brandi+Napoli'},
+      {n:'L\'Antica Pizzeria da Michele — la más famosa de Nápoles',map:'https://maps.google.com/?q=Pizzeria+da+Michele+Napoli'},
+      {n:'Sfogliatella Mary — la sfogliatella original del centro',map:'https://maps.google.com/?q=Sfogliatella+Mary+Napoli'},
+    ],
+    playas:[
+      {n:'Posillipo — zona costera elegante con vistas al Vesubio',map:'https://maps.google.com/?q=Posillipo+Napoli'},
+    ]
+  },
+  'Sorrento': {
+    emoji:'🍋', sub:'Acantilados sobre el Golfo de Nápoles — limoncello y vistas',
+    color:['#065f46','#34d399'],
+    ver:[
+      {n:'Piazza Tasso — corazón del centro histórico',map:'https://maps.google.com/?q=Piazza+Tasso+Sorrento'},
+      {n:'Villa Comunale — jardín con vistas al Vesubio y al mar',map:'https://maps.google.com/?q=Villa+Comunale+Sorrento'},
+      {n:'Cloister of San Francesco — claustro árabe-normando del siglo XIV',map:'https://maps.google.com/?q=Chiostro+San+Francesco+Sorrento'},
+      {n:'Via San Cesareo — mercado local, artesanías y limoncello',map:'https://maps.google.com/?q=Via+San+Cesareo+Sorrento'},
+    ],
+    comer:[
+      {n:'Il Buco — estrella Michelin, cocina de autor sobre raíces locales',map:'https://maps.google.com/?q=Il+Buco+Sorrento'},
+      {n:'Aurora — pasta fresca y mariscos con vista al mar',map:'https://maps.google.com/?q=Ristorante+Aurora+Sorrento'},
+    ],
+    playas:[
+      {n:'Marina Grande — la playa más auténtica del pueblo',map:'https://maps.google.com/?q=Marina+Grande+Sorrento'},
+      {n:'Marina Piccola — base para excursiones a Capri',map:'https://maps.google.com/?q=Marina+Piccola+Sorrento'},
+      {n:'Bagni della Regina Giovanna — cala natural en ruinas romanas',map:'https://maps.google.com/?q=Bagni+Regina+Giovanna+Sorrento'},
+    ]
+  },
+  'Pompeya': {
+    emoji:'🏺', sub:'Ciudad romana sepultada por el Vesubio en el 79 d.C.',
+    color:['#991b1b','#f87171'],
+    ver:[
+      {n:'Foro Romano — centro político y comercial de la ciudad',map:'https://maps.google.com/?q=Foro+Romano+Pompei'},
+      {n:'Casa dei Vettii — los frescos mejor conservados de Pompeya',map:'https://maps.google.com/?q=Casa+dei+Vettii+Pompei'},
+      {n:'Teatro Grande — capacidad para 5000 espectadores',map:'https://maps.google.com/?q=Teatro+Grande+Pompei'},
+      {n:'Lupanar — el burdel más famoso, con frescos originales',map:'https://maps.google.com/?q=Lupanar+Pompei'},
+      {n:'Terme Stabiane — las termas más antiguas de la ciudad',map:'https://maps.google.com/?q=Terme+Stabiane+Pompei'},
+      {n:'Villa dei Misteri — frescos del siglo I a.C. en perfecto estado', note:'A 10 min del sitio principal, vale el desvío',map:'https://maps.google.com/?q=Villa+dei+Misteri+Pompei'},
+    ],
+    comer:[
+      {n:'President — estrella Michelin en el centro de Pompeya',map:'https://maps.google.com/?q=Ristorante+President+Pompei'},
+      {n:'Il Principe — cocina inspirada en recetas romanas antiguas',map:'https://maps.google.com/?q=Ristorante+Il+Principe+Pompei'},
+    ],
+    playas:[]
+  },
+
+};
+
+// ── WISHLIST ─────────────────────────────────────────────────────────────────
+// Color pairs [bg-gradient-from, bg-gradient-to] for city thumbnails
+const CITY_THUMB_COLORS = {
+  'Bari':                ['#1d4ed8','#3b82f6'],
+  'Polignano a Mare':    ['#065f46','#10b981'],
+  'Alberobello':         ['#92400e','#f59e0b'],
+  'Ostuni':              ['#5b21b6','#8b5cf6'],
+  'Lecce':               ['#9d174d','#ec4899'],
+  'Trani':               ['#075985','#0ea5e9'],
+  'Otranto':             ['#047857','#34d399'],
+  'Gallipoli':           ['#991b1b','#f87171'],
+  'Vieste':              ['#1d4ed8','#60a5fa'],
+  'Matera':              ['#92400e','#d97706'],
+  'Santa Maria di Leuca':['#065f46','#6ee7b7'],
+  'Roma':                ['#7c3aed','#a78bfa'],
+  'Nápoles':             ['#b45309','#f59e0b'],
+  'Sorrento':            ['#065f46','#34d399'],
+  'Pompeya':             ['#991b1b','#f87171'],
+};
+
+// active city panel state
+let activeCityName = null;
+let cpActiveSection = 'ver';
+
+function renderWishlist() {
+  const cont = document.getElementById('wishlistContent');
+  cont.innerHTML = '';
+
+  // grid of city thumbnails
+  const grid = document.createElement('div');
+  grid.className = 'city-grid';
+
+  Object.entries(PUGLIA_DATA).forEach(([name, data]) => {
+    const colors = CITY_THUMB_COLORS[name] || ['#334155','#64748b'];
+
+    // count done
+    const allItems = [...data.ver, ...data.comer, ...data.playas];
+    let doneCount = 0;
+    allItems.forEach((_, idx) => {
+      const sections = ['ver','comer','playas'];
+      // find which section
+    });
+    // simpler: count by id pattern
+    ['ver','comer','playas'].forEach(sec => {
+      const items = data[sec] || [];
+      items.forEach((_, idx) => {
+        const w = wishlist.find(x => x.id === name+'__'+sec+'__'+idx);
+        if (w && w.done) doneCount++;
+      });
+    });
+    const customDone = wishlist.filter(w => w.city===name && w.custom && w.done).length;
+    const totalItems = allItems.length + wishlist.filter(w=>w.city===name&&w.custom).length;
+    const totalDone  = doneCount + customDone;
+
+    const thumb = document.createElement('div');
+    thumb.className = 'city-thumb';
+    thumb.style.setProperty('--cc-bg1', colors[0]);
+    thumb.style.setProperty('--cc-bg2', colors[1]);
+    const seed = encodeURIComponent(name);
+    thumb.innerHTML =
+      '<div class="city-thumb-bg"></div>' +
+      '<div class="city-thumb-photo" style="background-image:url(\'https://picsum.photos/seed/'+seed+'/400/300\')"></div>' +
+      '<span class="city-thumb-emoji">'+data.emoji+'</span>' +
+      '<div class="city-thumb-body">'+
+        '<div class="city-thumb-name">'+name+'</div>'+
+        '<div class="city-thumb-sub">'+data.sub+'</div>'+
+        '<div class="city-thumb-pills">'+
+          (data.ver.length   ? '<span class="city-thumb-pill">👁 '+data.ver.length+'</span>'   : '')+
+          (data.comer.length ? '<span class="city-thumb-pill">🍽 '+data.comer.length+'</span>' : '')+
+          (data.playas.length? '<span class="city-thumb-pill">🏖 '+data.playas.length+'</span>': '')+
+          (totalDone ? '<span class="city-thumb-pill done-pill">✅ '+totalDone+'/'+totalItems+'</span>' : '')+
+        '</div>'+
+      '</div>';
+    thumb.onclick = () => openCityPanel(name);
+    grid.appendChild(thumb);
+  });
+
+  cont.appendChild(grid);
+
+  // global add button
+  const addBtn = document.createElement('button');
+  addBtn.className = 'wish-global-add';
+  addBtn.innerHTML = '<span style="font-size:1.2rem">+</span> Agregar item a una ciudad';
+  addBtn.onclick = () => openCustomWish('','otro');
+  cont.appendChild(addBtn);
+}
+
+// ── CITY PANEL ──────────────────────────────────────────────────────────────
+function openCityPanel(cityName) {
+  activeCityName = cityName;
+  const data = PUGLIA_DATA[cityName];
+  const colors = CITY_THUMB_COLORS[cityName] || ['#334155','#64748b'];
+
+  document.getElementById('cpEmoji').textContent = data.emoji;
+  document.getElementById('cpTitle').textContent = cityName;
+  document.getElementById('cpSub').textContent   = data.sub;
+  document.getElementById('cpHeader').style.borderBottom = '3px solid '+colors[0];
+
+  // build tabs
+  const tabs = document.getElementById('cpTabs');
+  tabs.innerHTML = '';
+  const sections = [];
+  if (data.ver.length)    sections.push({key:'ver',   label:'👁 Lugares',      items:data.ver});
+  if (data.comer.length)  sections.push({key:'comer', label:'🍽 Comer',        items:data.comer});
+  if (data.playas.length) sections.push({key:'playas',label:'🏖 Playas',       items:data.playas});
+  const customs = wishlist.filter(w=>w.city===cityName&&w.custom);
+  if (customs.length) sections.push({key:'custom', label:'📌 Mis notas', items:customs});
+
+  sections.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'cp-tab' + (s.key===cpActiveSection ? ' active' : '');
+    btn.textContent = s.label;
+    btn.onclick = () => {
+      cpActiveSection = s.key;
+      tabs.querySelectorAll('.cp-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCpBody(cityName);
+    };
+    tabs.appendChild(btn);
+  });
+  // if active section has no items in this city, default to first
+  if (!sections.find(s=>s.key===cpActiveSection)) {
+    cpActiveSection = sections[0] ? sections[0].key : 'ver';
+  }
+
+  renderCpBody(cityName);
+  document.getElementById('cityPanel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCityPanel() {
+  document.getElementById('cityPanel').classList.remove('open');
+  document.body.style.overflow = '';
+  // close add form too
+  document.getElementById('cpAddForm') && (document.getElementById('cpAddForm').className='');
+  activeCityName = null;
+}
+
+function renderCpBody(cityName) {
+  const data = PUGLIA_DATA[cityName];
+  const body = document.getElementById('cpBody');
+  body.innerHTML = '';
+
+  const sectionMap = {
+    ver:    { label:'👁 Lugares que ver',  items:data.ver   },
+    comer:  { label:'🍽 Dónde comer',      items:data.comer },
+    playas: { label:'🏖 Playas',           items:data.playas},
+  };
+
+  if (cpActiveSection === 'custom') {
+    renderCpCustom(cityName);
+    return;
+  }
+
+  const sec = sectionMap[cpActiveSection];
+  if (!sec || !sec.items.length) {
+    body.innerHTML = '<div style="color:var(--muted);font-size:.9rem;padding:20px 0">No hay items en esta sección.</div>';
+    return;
+  }
+
+  sec.items.forEach((item, idx) => {
+    const wid = cityName+'__'+cpActiveSection+'__'+idx;
+    const w   = wishlist.find(x=>x.id===wid);
+    const isDone = w ? w.done : false;
+
+    const row = document.createElement('div');
+    row.className = 'cp-item';
+
+    const chk = document.createElement('div');
+    chk.className = 'cp-check' + (isDone?' on':'');
+    chk.textContent = isDone ? '✓' : '';
+    chk.onclick = (e) => { e.stopPropagation(); toggleWishById(wid, chk); };
+
+    const info = document.createElement('div');
+    info.className = 'cp-item-info';
+    info.innerHTML =
+      '<div class="cp-item-name'+(isDone?' done':'')+'">'+item.n+'</div>'+
+      (item.note ? '<div class="cp-item-note">'+item.note+'</div>' : '')+
+      (item.map  ? '<a class="cp-maps" href="'+item.map+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">📍 Google Maps</a>' : '');
+
+    row.appendChild(chk);
+    row.appendChild(info);
+    body.appendChild(row);
+  });
+
+  // add button + inline form
+  const addBtn = document.createElement('button');
+  addBtn.className = 'cp-add-btn';
+  addBtn.textContent = '+ Agregar item';
+  addBtn.onclick = () => showCpAddForm(cityName, cpActiveSection);
+  body.appendChild(addBtn);
+
+  // inline add form (hidden until addBtn clicked)
+  const form = document.createElement('div');
+  form.id = 'cpAddForm';
+  form.innerHTML =
+    '<input type="text" id="cpAddName" placeholder="Nombre del lugar / restaurante...">' +
+    '<input type="url"  id="cpAddLink" placeholder="Link Google Maps (opcional)">' +
+    '<input type="text" id="cpAddNote" placeholder="Nota (opcional)">' +
+    '<div class="add-form-row">'+
+      '<button class="af-save"   onclick="saveCpItem()">Agregar</button>'+
+      '<button class="af-cancel" onclick="closeCpAddForm()">Cancelar</button>'+
+    '</div>';
+  body.appendChild(form);
+}
+
+function renderCpCustom(cityName) {
+  const body = document.getElementById('cpBody');
+  const customs = wishlist.filter(w=>w.city===cityName&&w.custom);
+
+  if (!customs.length) {
+    body.innerHTML = '<div style="color:var(--muted);font-size:.9rem;padding:20px 0">No hay notas personales aún.</div>';
+  } else {
+    customs.forEach(w => {
+      const row = document.createElement('div');
+      row.className = 'cp-item';
+
+      const chk = document.createElement('div');
+      chk.className = 'cp-check'+(w.done?' on':'');
+      chk.textContent = w.done?'✓':'';
+      chk.onclick = (e) => { e.stopPropagation(); toggleWish(w.id); };
+
+      const info = document.createElement('div');
+      info.className = 'cp-item-info';
+      info.innerHTML =
+        '<div class="cp-item-name'+(w.done?' done':'')+'">'+w.name+'</div>'+
+        (w.note ? '<div class="cp-item-note">'+w.note+'</div>' : '')+
+        (w.link ? '<a class="cp-maps" href="'+w.link+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">📍 Maps</a>' : '');
+
+      const del = document.createElement('button');
+      del.className = 'cp-del'; del.textContent = '✕';
+      del.onclick = (e) => { e.stopPropagation(); deleteWish(w.id); };
+
+      const acts = document.createElement('div');
+      acts.className = 'cp-item-actions';
+      acts.appendChild(del);
+
+      row.appendChild(chk); row.appendChild(info); row.appendChild(acts);
+      body.appendChild(row);
+    });
+  }
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'cp-add-btn';
+  addBtn.textContent = '+ Agregar nota personal';
+  addBtn.onclick = () => showCpAddForm(cityName, 'custom');
+  body.appendChild(addBtn);
+
+  const form = document.createElement('div');
+  form.id = 'cpAddForm';
+  form.innerHTML =
+    '<input type="text" id="cpAddName" placeholder="Nombre...">' +
+    '<input type="url"  id="cpAddLink" placeholder="Link Google Maps (opcional)">' +
+    '<input type="text" id="cpAddNote" placeholder="Nota (opcional)">' +
+    '<div class="add-form-row">'+
+      '<button class="af-save"   onclick="saveCpItem()">Agregar</button>'+
+      '<button class="af-cancel" onclick="closeCpAddForm()">Cancelar</button>'+
+    '</div>';
+  body.appendChild(form);
+}
+
+function showCpAddForm(city, section) {
+  const form = document.getElementById('cpAddForm');
+  if (!form) return;
+  form.className = 'open';
+  form.dataset.city    = city;
+  form.dataset.section = section;
+  document.getElementById('cpAddName').focus();
+}
+
+function saveCpItem() {
+  const form = document.getElementById('cpAddForm');
+  const name = document.getElementById('cpAddName').value.trim();
+  if (!name) { toast('Ingresá un nombre'); return; }
+  wishlist.push({
+    id:      uid(),
+    city:    form.dataset.city,
+    section: form.dataset.section,
+    name,
+    note: document.getElementById('cpAddNote').value.trim(),
+    link: document.getElementById('cpAddLink').value.trim(),
+    done: false,
+    custom: true,
+  });
+  save();
+  // re-open panel to refresh
+  const cn = activeCityName;
+  cpActiveSection = form.dataset.section;
+  openCityPanel(cn);
+}
+
+// Esc key closes panel
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeCityPanel(); });
+
+
+function toggleWishById(wid,el){
+  let entry=wishlist.find(w=>w.id===wid);
+  if(!entry){ entry={id:wid,done:false}; wishlist.push(entry); }
+  entry.done=!entry.done;
+  save(); renderWishlist();
+}
+
+function openCustomWish(city,section){
+  editingWishId=null; wishTypeSelected=section||'otro';
+  rebuildCitySelects();
+  document.getElementById('wishCity').value=city||'';
+  document.getElementById('wishName').value='';
+  document.getElementById('wishNote').value='';
+  document.getElementById('wishLink').value='';
+  document.querySelectorAll('.wish-type-btn').forEach(b=>{
+    b.classList.toggle('sel',b.dataset.type===wishTypeSelected);
+  });
+  document.getElementById('wishOverlay').classList.add('open');
+}
+
+
+function openWishModal(preCity,preType){
+  editingWishId=null; wishTypeSelected=preType||'otro';
+  rebuildCitySelects();
+  document.getElementById('wishCity').value=preCity||'';
+  document.getElementById('wishName').value='';
+  document.getElementById('wishNote').value='';
+  document.getElementById('wishLink').value='';
+  document.querySelectorAll('.wish-type-btn').forEach(b=>b.classList.toggle('sel',b.dataset.type===wishTypeSelected));
+  document.getElementById('wishOverlay').classList.add('open');
+}
+
+function selWishType(btn){
+  document.querySelectorAll('.wish-type-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  wishTypeSelected=btn.dataset.type;
+}
+
+function saveWishItem(){
+  const name=document.getElementById('wishName').value.trim();
+  if(!name){ toast('Ingresá un nombre'); return; }
+  const item={
+    id: editingWishId||uid(),
+    city: document.getElementById('wishCity').value,
+    type: wishTypeSelected||'otro',
+    name,
+    note: document.getElementById('wishNote').value.trim(),
+    link: document.getElementById('wishLink').value.trim(),
+    done: false,
+    custom: true,
+  };
+  if(editingWishId){ const idx=wishlist.findIndex(w=>w.id===editingWishId); if(idx>=0) wishlist[idx]=item; }
+  else wishlist.push(item);
+  save(); closeModal('wishOverlay'); renderWishlist();
+}
+
+function toggleWish(id){
+  const w=wishlist.find(x=>x.id===id);
+  if(w){ w.done=!w.done; save(); renderWishlist(); }
+}
+
+function deleteWish(id){
+  wishlist=wishlist.filter(x=>x.id!==id);
+  save(); renderWishlist();
+}
+
+
+// ── DOCUMENTS ────────────────────────────────────────────
+const DOC_FIELDS=['doc-passport-num','doc-passport-exp','doc-passport-country','doc-ins-company','doc-ins-policy','doc-ins-phone','doc-ins-exp','doc-em1-name','doc-em1-phone','doc-em2-name','doc-em2-phone','doc-notes'];
+function loadDocsUI(){
+  DOC_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=docs[id]||''; });
+  renderPnrList();
+}
+function saveDocs(){
+  DOC_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) docs[id]=el.value; });
+  // collect PNR entries
+  docs.pnrs = Array.from(document.querySelectorAll('.pnr-entry-row')).map(row=>({
+    label: row.querySelector('.pnr-lbl').value.trim(),
+    code:  row.querySelector('.pnr-code').value.trim(),
+  })).filter(p=>p.code);
+  save(); toast('✅ Documentos guardados');
+}
+function renderPnrList(){
+  const cont=document.getElementById('pnrList'); cont.innerHTML='';
+  (docs.pnrs||[]).forEach(p=>addPnrEntry(p));
+}
+function addPnrEntry(p={}){
+  const cont=document.getElementById('pnrList');
+  const row=document.createElement('div'); row.className='pnr-entry-row'; row.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:center';
+  row.innerHTML=`<input type="text" class="pnr-lbl" placeholder="Descripción (ej. IB3456)" value="${p.label||''}" style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem">
+    <input type="text" class="pnr-code" placeholder="Localizador" value="${p.code||''}" style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;font-family:monospace">
+    <button class="pnr-copy" onclick="navigator.clipboard.writeText(this.previousElementSibling.value).then(()=>toast('✅ Copiado!'))">📋</button>
+    <button class="del-act" onclick="this.parentElement.remove()">✕</button>`;
+  cont.appendChild(row);
+}
+
+// ── SHIFT TRIP ───────────────────────────────────────────
+function shiftTrip(dir){
+  const n=parseInt(document.getElementById('shiftDays').value)||1;
+  const delta=dir*n; const old=Object.keys(days); if(!old.length) return;
+  const nd={};
+  old.forEach(ds=>{
+    const [y,m,d]=ds.split('-').map(Number);
+    const dt=new Date(y,m-1,d); dt.setDate(dt.getDate()+delta);
+    const nk=`${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+    const entry={...days[ds]};
+    // shift hotel range too
+    if(entry.hotelFrom){ const hf=new Date(entry.hotelFrom+'T00:00:00'); hf.setDate(hf.getDate()+delta); entry.hotelFrom=`${hf.getFullYear()}-${pad(hf.getMonth()+1)}-${pad(hf.getDate())}`; }
+    if(entry.hotelTo)  { const ht=new Date(entry.hotelTo+'T00:00:00');   ht.setDate(ht.getDate()+delta); entry.hotelTo=`${ht.getFullYear()}-${pad(ht.getMonth()+1)}-${pad(ht.getDate())}`; }
+    nd[nk]=entry;
+  });
+  days=nd; save(); rebuildCalendars();
+}
+
+// ── MODALS ───────────────────────────────────────────────
+function closeCpAddForm(){
+  const f=document.getElementById('cpAddForm');
+  if(f) f.className='';
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
+
+// ── TEAMS BANNER ─────────────────────────────────────────
+(function(){
+  const ua=navigator.userAgent;
+  const isTeams=ua.includes('Teams')||ua.includes('Electron')||(location.protocol==='file:'&&ua.includes('Edge'));
+  if(!isTeams){ const b=document.getElementById('teamsBanner'); if(b) b.style.display='none'; }
+})();
+
+// ── TRANSPORT PLANNER ───────────────────────────────────────────────────────
+function addTransportToCalendar() {
+  const dateDep  = document.getElementById('tp-date-dep').value;
+  const mode     = document.getElementById('tp-mode').value;
+  const fromCity = document.getElementById('tp-from-city').value.trim();
+  const toCity   = document.getElementById('tp-to-city').value.trim();
+  const timeDep  = document.getElementById('tp-time-dep').value;
+  const timeArr  = document.getElementById('tp-time-arr').value;
+  const dateArr  = document.getElementById('tp-date-arr').value || dateDep;
+  const ref      = document.getElementById('tp-ref').value.trim();
+  const notes    = document.getElementById('tp-notes').value.trim();
+
+  if (!dateDep) { toast('Ingresá la fecha de salida'); return; }
+  if (!fromCity && !toCity) { toast('Ingresá al menos origen o destino'); return; }
+
+  const transport = { mode, dep: timeDep, arr: '', ref };
+
+  // Add departure leg to origin day
+  if (dateDep) {
+    if (!days[dateDep]) days[dateDep] = { city:'', transports:[], hotelName:'', hotelFrom:'', hotelTo:'', hotelMap:'', budgetEst:'', budgetReal:'', activities:[], notes:'' };
+    if (fromCity && !days[dateDep].city) days[dateDep].city = fromCity;
+    days[dateDep].transports = days[dateDep].transports || [];
+    days[dateDep].transports.push({ mode, dep: timeDep, arr: '', ref });
+    if (notes && !days[dateDep].notes) days[dateDep].notes = notes;
+  }
+
+  // Add arrival leg to destination day
+  if (dateArr) {
+    if (!days[dateArr]) days[dateArr] = { city:'', transports:[], hotelName:'', hotelFrom:'', hotelTo:'', hotelMap:'', budgetEst:'', budgetReal:'', activities:[], notes:'' };
+    if (toCity) days[dateArr].city = toCity;
+    days[dateArr].transports = days[dateArr].transports || [];
+    days[dateArr].transports.push({ mode, dep: '', arr: timeArr, ref });
+  }
+
+  save();
+  rebuildCalendars();
+  renderTpSummary();
+
+  // feedback
+  const fb = document.getElementById('tp-feedback');
+  fb.textContent = '✅ Agregado al calendario';
+  fb.style.opacity = '1';
+  setTimeout(() => fb.style.opacity = '0', 2500);
+}
+
+function clearTpForm() {
+  ['tp-date-dep','tp-time-dep','tp-time-arr','tp-date-arr','tp-ref','tp-notes','tp-from-city','tp-to-city']
+    .forEach(id => document.getElementById(id).value = '');
+  document.getElementById('tp-mode').value = 'avion';
+}
+
+function renderTpSummary() {
+  const cont = document.getElementById('tpSummary');
+  if (!cont) return;
+  cont.innerHTML = '';
+  // collect all transport entries from days, sorted by date
+  const entries = [];
+  Object.entries(days).sort().forEach(([ds, data]) => {
+    (data.transports||[]).forEach(t => {
+      if (t.dep || t.arr) entries.push({ ds, city: data.city, ...t });
+    });
+  });
+  if (!entries.length) {
+    cont.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:10px 0">No hay transportes cargados aún.</div>';
+    return;
+  }
+  const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  entries.forEach(e => {
+    const [y,m,d] = e.ds.split('-');
+    const dateLabel = parseInt(d)+' '+MONTHS[parseInt(m)-1]+' '+y;
+    const icon = TICON[e.mode]||'🚀';
+    const div = document.createElement('div'); div.className='tp-entry';
+    div.innerHTML =
+      '<span class="tp-entry-icon">'+icon+'</span>'+
+      '<div class="tp-entry-info">'+
+        '<div class="tp-entry-route">'+
+          (e.dep ? e.dep+' ' : '')+(e.city||'')+(e.arr ? ' → llegada '+e.arr : '')+
+          (e.ref ? ' <span style="font-family:monospace;font-size:.78rem;background:#f0f4ff;padding:1px 6px;border-radius:4px">'+e.ref+'</span>' : '')+
+        '</div>'+
+        '<div class="tp-entry-detail">'+dateLabel+'</div>'+
+      '</div>'+
+      '';
+    const delBtn=document.createElement('button');
+    delBtn.className='tp-entry-del'; delBtn.textContent='✕';
+    delBtn.dataset.ds=e.ds; delBtn.dataset.mode=e.mode; delBtn.dataset.dep=e.dep||'';
+    delBtn.onclick=function(){ removeTpEntry(this.dataset.ds,this.dataset.mode,this.dataset.dep); };
+    div.appendChild(delBtn);
+    cont.appendChild(div);
+  });
+}
+
+function removeTpEntry(ds, mode, dep) {
+  if (!days[ds]) return;
+  days[ds].transports = (days[ds].transports||[]).filter(t=>!(t.mode===mode && t.dep===dep));
+  save(); rebuildCalendars(); renderTpSummary();
+}
+
+// ── INIT ─────────────────────────────────────────────────
+load();
+rebuildLegend();
+rebuildCalendars();
+</script>
+</body>
+</html>
