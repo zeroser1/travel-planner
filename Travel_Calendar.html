@@ -733,6 +733,10 @@ html { touch-action: pan-x pan-y; }
   <span class="header-icon">✈️</span>
   <h1>Travel Planner <span id="tripName">Agosto – Septiembre 2026</span></h1>
   <div class="header-actions">
+    <span id="syncStatus" style="font-size:.72rem;color:#91C8F6;display:flex;align-items:center;gap:5px;cursor:pointer" onclick="openSyncSetup()" title="Configurar sincronización">
+      <span id="syncDot" style="width:8px;height:8px;border-radius:50%;background:#6b7280;display:inline-block;flex-shrink:0"></span>
+      <span id="syncText" class="hbtn-full">Sin sync</span>
+    </span>
     <button class="hbtn hbtn-ghost" onclick="openCityManager()"><span class="hbtn-full">🏙 Ciudades</span><span class="hbtn-short">🏙</span></button>
     <button class="hbtn hbtn-ghost" onclick="switchTab('tabDocs')"><span class="hbtn-full">📄 Docs</span><span class="hbtn-short">📄</span></button>
     <button class="hbtn hbtn-ghost no-mobile" onclick="window.print()">🖨 Imprimir</button>
@@ -1045,6 +1049,30 @@ html { touch-action: pan-x pan-y; }
   </div>
 </div>
 
+<!-- MODAL: SYNC SETUP -->
+<div class="overlay" id="syncOverlay">
+  <div class="modal" style="max-width:440px">
+    <button class="close-btn" onclick="closeModal('syncOverlay')">✕</button>
+    <h3>☁️ Sincronización entre dispositivos</h3>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5">
+      Ingresá el <strong>Bin ID</strong> y el <strong>API Key</strong> de JSONBin.io.<br>
+      Ambos dispositivos deben usar los mismos valores para estar sincronizados.
+    </p>
+    <label>Bin ID</label>
+    <input type="text" id="syncBinId" placeholder="ej. 64a1b2c3d4e5f6a7b8c9d0e1">
+    <label style="margin-top:12px">Master Key (API Key)</label>
+    <input type="password" id="syncApiKey" placeholder="$2a$10$...">
+    <p style="font-size:.75rem;color:var(--muted);margin-top:8px">
+      💡 El key se guarda solo en este dispositivo, nunca en el código ni en GitHub.
+    </p>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="clearSyncConfig()">Desactivar</button>
+      <button class="btn btn-ghost" onclick="closeModal('syncOverlay')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSyncConfig()">Activar sync</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1071,21 +1099,130 @@ let editingWishId = null;
 let wishTypeSelected = '';
 
 // ── PERSIST ──────────────────────────────────────────────
+const SYNC_KEY = 'travel_sync_config'; // stores {binId, apiKey} in localStorage
+let syncTimer  = null;
+let syncConfig = null; // {binId, apiKey} loaded at startup
+
+function getSyncConfig() {
+  if (syncConfig) return syncConfig;
+  const raw = localStorage.getItem(SYNC_KEY);
+  if (raw) { try { syncConfig = JSON.parse(raw); } catch(e){} }
+  return syncConfig;
+}
+
+function setSyncStatus(state) {
+  const dot  = document.getElementById('syncDot');
+  const text = document.getElementById('syncText');
+  if (!dot) return;
+  const map = {
+    ok:      { color:'#34d399', label:'Sincronizado'  },
+    saving:  { color:'#fbbf24', label:'Guardando...'  },
+    loading: { color:'#60a5fa', label:'Cargando...'   },
+    error:   { color:'#f87171', label:'Sin conexión'  },
+    none:    { color:'#6b7280', label:'Sin sync'      },
+  };
+  const s = map[state] || map.ok;
+  dot.style.background = s.color;
+  text.textContent     = s.label;
+}
+
 function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({cities,days,wishlist,docs}));
+  const data = {cities, days, wishlist, docs};
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => syncToCloud(data), 800);
 }
+
 function load() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  // try to migrate old key
-  const old = !raw && localStorage.getItem('travel_cal_v1');
-  const src  = raw || old;
-  if (!src) return;
-  const d = JSON.parse(src);
-  cities   = d.cities   || [];
-  days     = d.days     || {};
-  wishlist = d.wishlist || [];
-  docs     = d.docs     || {};
+  const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('travel_cal_v1');
+  if (raw) {
+    const d = JSON.parse(raw);
+    cities   = d.cities   || [];
+    days     = d.days     || {};
+    wishlist = d.wishlist || [];
+    docs     = d.docs     || {};
+  }
+  const cfg = getSyncConfig();
+  if (cfg) syncFromCloud(); else setSyncStatus('none');
 }
+
+async function syncToCloud(data) {
+  const cfg = getSyncConfig();
+  if (!cfg) return;
+  setSyncStatus('saving');
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + cfg.binId, {
+      method:  'PUT',
+      headers: { 'Content-Type':'application/json', 'X-Master-Key': cfg.apiKey },
+      body:    JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(res.status);
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('error');
+    console.warn('Sync save failed:', e);
+  }
+}
+
+async function syncFromCloud() {
+  const cfg = getSyncConfig();
+  if (!cfg) { setSyncStatus('none'); return; }
+  setSyncStatus('loading');
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + cfg.binId + '/latest', {
+      headers: { 'X-Master-Key': cfg.apiKey }
+    });
+    if (!res.ok) throw new Error(res.status);
+    const json = await res.json();
+    const d    = json.record;
+    if (!d || (!d.cities && !d.days)) { setSyncStatus('ok'); return; }
+    const remote = JSON.stringify(d);
+    const local  = localStorage.getItem(STORAGE_KEY);
+    if (local !== remote) {
+      cities   = d.cities   || [];
+      days     = d.days     || {};
+      wishlist = d.wishlist || [];
+      docs     = d.docs     || {};
+      localStorage.setItem(STORAGE_KEY, remote);
+      rebuildLegend();
+      rebuildCalendars();
+      const activeTab = document.querySelector('.tab-btn.active');
+      if (activeTab && activeTab.id === 'btn-tabWishlist') renderWishlist();
+      if (activeTab && activeTab.id === 'btn-tabDocs')     loadDocsUI();
+    }
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('error');
+    console.warn('Sync load failed:', e);
+  }
+}
+
+function openSyncSetup() {
+  const cfg = getSyncConfig() || {};
+  document.getElementById('syncBinId').value  = cfg.binId  || '';
+  document.getElementById('syncApiKey').value = cfg.apiKey || '';
+  document.getElementById('syncOverlay').classList.add('open');
+}
+
+function saveSyncConfig() {
+  const binId  = document.getElementById('syncBinId').value.trim();
+  const apiKey = document.getElementById('syncApiKey').value.trim();
+  if (!binId || !apiKey) { toast('Completá los dos campos'); return; }
+  syncConfig = { binId, apiKey };
+  localStorage.setItem(SYNC_KEY, JSON.stringify(syncConfig));
+  closeModal('syncOverlay');
+  syncFromCloud();
+  toast('✅ Sync configurado');
+}
+
+function clearSyncConfig() {
+  syncConfig = null;
+  localStorage.removeItem(SYNC_KEY);
+  closeModal('syncOverlay');
+  setSyncStatus('none');
+  toast('Sync desactivado');
+}
+
 
 // ── UTILS ────────────────────────────────────────────────
 function pad(n){ return String(n).padStart(2,'0'); }
