@@ -4747,29 +4747,15 @@ a.hotel-tag:hover { text-decoration:underline; }
 
 
   /* hide rich content on mobile cells — all accessible via tap */
-
-
-
-
-
-
-
   .city-lbl, .transport-tag, .hotel-tag, .budget-tag, .activities, .more-badge {
-
-
-
-
-
-
-
     display:none !important;
-
-
-
-
-
-
-
+  }
+  /* visit-tag: show truncated name hint */
+  .visit-tag {
+    display:block !important;
+    font-size:.52rem; padding:0 2px; opacity:.8;
+    width:100%; min-width:0;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
 
 
